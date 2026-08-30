@@ -1,0 +1,92 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
+import {
+  LOGIN_AT_COOKIE,
+  STAY_COOKIE,
+  isAbsolutelyExpired,
+  parseLoginAt,
+} from "@/lib/auth/session";
+
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/subjects",
+  "/viewer",
+  "/admin",
+  "/account",
+];
+
+const SUPABASE_COOKIE_RE = /^sb-.*-auth-token/;
+
+function isProtected(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+function redirect(request: NextRequest, path: string, params?: Record<string, string>) {
+  const url = request.nextUrl.clone();
+  url.pathname = path;
+  url.search = "";
+  if (params) {
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  }
+  return NextResponse.redirect(url);
+}
+
+function clearAuthCookies(request: NextRequest, res: NextResponse) {
+  res.cookies.delete(LOGIN_AT_COOKIE);
+  res.cookies.delete(STAY_COOKIE);
+  for (const c of request.cookies.getAll()) {
+    if (SUPABASE_COOKIE_RE.test(c.name)) res.cookies.delete(c.name);
+  }
+  return res;
+}
+
+export async function middleware(request: NextRequest) {
+  const { response, supabase, user } = await updateSession(request);
+  const { pathname } = request.nextUrl;
+
+  // Already authenticated and hitting the login page → go to the dashboard.
+  if (user && pathname === "/login") {
+    return redirect(request, "/dashboard");
+  }
+
+  // Absolute session cap (4h default / 48h with "stay logged in").
+  if (user) {
+    const loginAt = parseLoginAt(request.cookies.get(LOGIN_AT_COOKIE)?.value);
+    const stay = request.cookies.get(STAY_COOKIE)?.value === "1";
+    if (isAbsolutelyExpired(loginAt, stay)) {
+      await supabase.auth.signOut();
+      const res = redirect(request, "/login", { reason: "expired" });
+      return clearAuthCookies(request, res);
+    }
+  }
+
+  if (!isProtected(pathname)) return response;
+
+  if (!user) {
+    return redirect(request, "/login", { reason: "auth", next: pathname });
+  }
+
+  // /admin/* requires role = 'admin', validated against the DB (not the client).
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin") {
+      return redirect(request, "/dashboard", { error: "forbidden" });
+    }
+  }
+
+  return response;
+}
+
+export const config = {
+  // Run on everything except Next internals and static assets.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|pdf.worker.min.mjs|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
