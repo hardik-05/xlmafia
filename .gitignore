@@ -34,3 +34,6 @@ yarn-error.log*
 
 # generated
 /public/pdf.worker.min.mjs
+
+# editor / tooling local state
+/.claude/
