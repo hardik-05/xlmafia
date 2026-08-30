@@ -64,3 +64,75 @@ a {
     font-size: 14px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Rendered Markdown / DOCX content ("doc-prose"). Minimal typographic reset
+   since the Tailwind typography plugin is not installed.
+   --------------------------------------------------------------------------- */
+.doc-prose {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  word-wrap: break-word;
+}
+.doc-prose h1,
+.doc-prose h2,
+.doc-prose h3,
+.doc-prose h4 {
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 1.4em 0 0.6em;
+}
+.doc-prose h1 { font-size: 1.6em; }
+.doc-prose h2 { font-size: 1.35em; }
+.doc-prose h3 { font-size: 1.15em; }
+.doc-prose p { margin: 0.75em 0; }
+.doc-prose ul,
+.doc-prose ol { margin: 0.75em 0; padding-left: 1.5em; }
+.doc-prose ul { list-style: disc; }
+.doc-prose ol { list-style: decimal; }
+.doc-prose li { margin: 0.3em 0; }
+.doc-prose a { color: var(--accent); text-decoration: underline; }
+.doc-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.doc-prose pre {
+  background: var(--surface-2);
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.doc-prose pre code { background: none; padding: 0; }
+.doc-prose blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: var(--muted);
+}
+.doc-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  display: block;
+  overflow-x: auto;
+}
+.doc-prose th,
+.doc-prose td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.doc-prose img { max-width: 100%; height: auto; }
+.doc-prose hr { border: 0; border-top: 1px solid var(--border); margin: 1.5em 0; }
+
+/* Light variant for the DOCX surface (rendered on white). */
+.doc-prose--light code,
+.doc-prose--light pre { background: #f2f2f4; }
+.doc-prose--light blockquote { color: #555; border-left-color: #ccc; }
+.doc-prose--light th,
+.doc-prose--light td { border-color: #ddd; }
+.doc-prose--light a { color: #1a56db; }
