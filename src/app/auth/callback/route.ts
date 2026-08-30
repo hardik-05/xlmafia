@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
+import type { CookieToSet } from "@/lib/supabase/cookies";
 import { isAllowedEmail } from "@/lib/auth/domain";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: CookieToSet[]) {
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         );

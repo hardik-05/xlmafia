@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import type { CookieToSet } from "@/lib/supabase/cookies";
 
 /**
  * Refreshes the Supabase auth session on every request and returns both the
@@ -17,7 +18,7 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: CookieToSet[]) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );

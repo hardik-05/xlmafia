@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
 import { LOGIN_AT_COOKIE, STAY_COOKIE } from "@/lib/auth/session";
+import type { CookieToSet } from "@/lib/supabase/cookies";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ async function handle(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: CookieToSet[]) {
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
         );
