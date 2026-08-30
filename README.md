@@ -9,6 +9,10 @@ anonymously upvote notes.
 Built to run entirely on **free tiers** (Vercel Hobby + Supabase Free) for a POC
 of up to ~45 concurrent users.
 
+- **Live:** https://xlmafia.vercel.app *(returns 500 until the Vercel env vars in
+  [SETUP.md](./SETUP.md) §5 are set and the project is redeployed)*
+- **Supabase project:** `lyinnonapazyflaccmmt` (ap-south-1), schema + RLS applied
+
 ## Stack
 
 | Concern | Choice |

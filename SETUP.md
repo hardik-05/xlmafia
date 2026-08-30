@@ -71,8 +71,14 @@ npm run dev                     # http://localhost:3000
 ## 5. Deploy to Vercel
 
 The Vercel project **`xlmafia`** (team *hdk's projects*, Hobby plan) is linked to the
-GitHub repo `hardik-05/xlmafia`; every push to `main` auto-deploys. The build compiles
-without env vars (values are read lazily), but **the running app needs them**.
+GitHub repo `hardik-05/xlmafia`; every push to `main` auto-deploys.
+
+- Production URL: **https://xlmafia.vercel.app**
+- Project: <https://vercel.com/hdks-projects-74da0404/xlmafia>
+
+The build compiles without env vars (values are read lazily), but **the running app
+returns 500 on every route until the variables below are set** — middleware needs the
+Supabase URL/key on every request. Add them, then redeploy.
 
 1. **Vercel → Project `xlmafia` → Settings → Environment Variables** — add for
    *Production* and *Preview*:
