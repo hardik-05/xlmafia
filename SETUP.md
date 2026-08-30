@@ -7,16 +7,23 @@ Vercel deploy → first admin. Everything here is free-tier.
 
 ## 1. Supabase project
 
-1. Create a project at <https://supabase.com/dashboard> (Free plan, region closest to
-   your users — e.g. `ap-south-1` Mumbai).
-2. **Project Settings → API**, copy:
-   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon` / `publishable` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server only — keep secret)
+A free-plan project has already been provisioned for this POC:
+
+| | |
+| --- | --- |
+| Project ref | `lyinnonapazyflaccmmt` |
+| Project URL | `https://lyinnonapazyflaccmmt.supabase.co` |
+| Region | `ap-south-1` (Mumbai) |
+| Publishable key (`NEXT_PUBLIC_SUPABASE_ANON_KEY`) | `sb_publishable_ZlCPLmKEsp0lz3NRx_dutg_XNg2CqNq` |
+| `SUPABASE_SERVICE_ROLE_KEY` | **copy yourself** from Dashboard → Project Settings → API → `service_role` (secret; not retrievable via tooling) |
+
+To create your own instead: new project at <https://supabase.com/dashboard> (Free plan,
+`ap-south-1`), then read the three values from **Project Settings → API**.
 
 ## 2. Database schema
 
-Run the migrations in order in **SQL Editor** (or `supabase db push` with the CLI):
+Migrations `0001`–`0005` have **already been applied** to `lyinnonapazyflaccmmt`.
+For a fresh project, run them in order in **SQL Editor** (or `supabase db push`):
 
 | Order | File | Creates |
 | --- | --- | --- |
@@ -24,6 +31,7 @@ Run the migrations in order in **SQL Editor** (or `supabase db push` with the CL
 | 2 | `supabase/migrations/0002_functions_triggers.sql` | `is_admin()`, `handle_new_user()` (domain gate), comment-depth trigger, `increment_thumbs_up()` RPC |
 | 3 | `supabase/migrations/0003_rls.sql` | RLS + policies (non-admins cannot write subjects/notes) |
 | 4 | `supabase/migrations/0004_storage.sql` | private `notes` bucket + storage policies |
+| 5 | `supabase/migrations/0005_security_hardening.sql` | linter fixes: `security_invoker` view, pinned `search_path`, trigger fns not RPC-exposed |
 
 ## 3. Auth configuration (Dashboard — cannot be scripted)
 
@@ -62,22 +70,27 @@ npm run dev                     # http://localhost:3000
 
 ## 5. Deploy to Vercel
 
-1. Import the GitHub repo `hardik-05/xlmafia` at <https://vercel.com/new>
-   (Framework preset: **Next.js**, no build overrides needed).
-2. **Project → Settings → Environment Variables** — add for *Production* and *Preview*:
+The Vercel project **`xlmafia`** (team *hdk's projects*, Hobby plan) is linked to the
+GitHub repo `hardik-05/xlmafia`; every push to `main` auto-deploys. The build compiles
+without env vars (values are read lazily), but **the running app needs them**.
+
+1. **Vercel → Project `xlmafia` → Settings → Environment Variables** — add for
+   *Production* and *Preview*:
 
    | Key | Value |
    | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | from step 1 |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from step 1 |
-   | `SUPABASE_SERVICE_ROLE_KEY` | from step 1 (secret) |
-   | `NEXT_PUBLIC_SITE_URL` | `https://<your-vercel-domain>` |
+   | `NEXT_PUBLIC_SUPABASE_URL` | `https://lyinnonapazyflaccmmt.supabase.co` |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_ZlCPLmKEsp0lz3NRx_dutg_XNg2CqNq` |
+   | `SUPABASE_SERVICE_ROLE_KEY` | *(secret — copy from Supabase Dashboard → Settings → API)* |
+   | `NEXT_PUBLIC_SITE_URL` | your production URL, e.g. `https://xlmafia.vercel.app` |
    | `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAIN` | `astra.xlri.ac.in` |
    | `ALLOWED_EMAIL_DOMAIN` | `astra.xlri.ac.in` |
 
-3. Redeploy. Add the Vercel domain to Supabase Site URL + Redirect URLs (step 3).
+2. **Redeploy** (Deployments → ⋯ → Redeploy) so the new vars take effect — the
+   `NEXT_PUBLIC_*` values are inlined at build time.
 
-Every push to `main` auto-deploys.
+3. Add the production URL to Supabase **Authentication → URL Configuration**:
+   Site URL + Redirect URL `https://<domain>/auth/callback` (see step 3).
 
 ## 6. Create the first admin
 

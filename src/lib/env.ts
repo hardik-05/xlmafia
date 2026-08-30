@@ -1,7 +1,9 @@
 /**
- * Centralised environment access. Throws early (at import) if a required
- * public var is missing so misconfiguration fails loudly in the build/boot,
- * not deep inside a request.
+ * Centralised environment access.
+ *
+ * Required values are read lazily via getters so that `next build` succeeds
+ * even before the deployment's env vars are configured; a missing value only
+ * throws when something actually tries to use it at request time.
  */
 
 function required(name: string, value: string | undefined): string {
@@ -12,24 +14,33 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const env = {
-  supabaseUrl: required(
-    "NEXT_PUBLIC_SUPABASE_URL",
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-  ),
-  supabaseAnonKey: required(
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  ),
-  siteUrl:
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "http://localhost:3000",
-  allowedDomain: (
-    process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAIN ||
-    process.env.ALLOWED_EMAIL_DOMAIN ||
-    "astra.xlri.ac.in"
-  )
-    .toLowerCase()
-    .trim(),
+  get supabaseUrl(): string {
+    return required(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    );
+  },
+  get supabaseAnonKey(): string {
+    return required(
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    );
+  },
+  get siteUrl(): string {
+    return (
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+      "http://localhost:3000"
+    );
+  },
+  get allowedDomain(): string {
+    return (
+      process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAIN ||
+      process.env.ALLOWED_EMAIL_DOMAIN ||
+      "astra.xlri.ac.in"
+    )
+      .toLowerCase()
+      .trim();
+  },
 };
 
 /** Server-only. Do not import from a client component. */
