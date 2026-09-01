@@ -20,11 +20,11 @@ export default function TopBar({
               Admin
             </Link>
           )}
-          <a
-            href={SUPPORT_MAILTO}
-            className="hidden hover:text-[var(--text)] sm:inline"
-          >
-            Support
+          <Link href="/about" className="hover:text-[var(--text)]">
+            About
+          </Link>
+          <a href={SUPPORT_MAILTO} className="hover:text-[var(--text)]">
+            Help
           </a>
           <span className="hidden max-w-[16ch] truncate sm:inline">
             {displayName}

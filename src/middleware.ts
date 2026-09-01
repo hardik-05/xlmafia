@@ -13,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/viewer",
   "/admin",
   "/account",
+  "/about",
 ];
 
 const SUPABASE_COOKIE_RE = /^sb-.*-auth-token/;

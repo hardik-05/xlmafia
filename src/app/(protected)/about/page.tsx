@@ -1,10 +1,13 @@
-import Link from "next/link";
+import Image from "next/image";
 import { ALLOWED_DOMAIN } from "@/lib/auth/domain";
 import {
   CONTRIBUTORS,
   SUPPORT_EMAIL,
   SUPPORT_MAILTO,
   REPO_URL,
+  BATCH_LABEL,
+  BATCH_MOTTO,
+  BATCH_PHOTO,
 } from "@/lib/site";
 
 export const metadata = { title: "About - XLRI Notes Portal" };
@@ -19,27 +22,43 @@ function initials(name: string): string {
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-3xl font-semibold tracking-tight">About</h1>
 
       <div className="mt-6 space-y-4 text-[var(--muted)]">
         <p>
-          The XLRI Notes Portal is a proof-of-concept for sharing study material
-          within the institute. An administrator uploads notes &mdash; PDFs,
-          Markdown, Word documents and scanned images &mdash; organised by
-          subject. Signed-in students browse and search subjects, read notes in a
-          viewer that blocks copying, downloading and printing, discuss in
-          text-only threads and upvote what they find useful.
+          The XLRI Notes Portal is a place for our batch to share study material.
+          An administrator uploads notes &mdash; PDFs, Markdown, Word documents
+          and scanned images &mdash; organised by subject. You browse and search
+          subjects, read notes in a viewer that blocks copying, downloading and
+          printing, and discuss in text-only threads.
         </p>
         <p>
           Access is restricted to{" "}
           <span className="font-medium text-[var(--text)]">
             @{ALLOWED_DOMAIN}
           </span>{" "}
-          email addresses, checked in the sign-in form, in the API and again by a
-          database rule. It runs entirely on free infrastructure.
+          accounts, checked at sign-in, in the API and by a database rule. It
+          runs entirely on free infrastructure.
         </p>
       </div>
+
+      <figure className="mt-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+        <Image
+          src={BATCH_PHOTO}
+          alt={`XLRI ${BATCH_LABEL}`}
+          width={1280}
+          height={744}
+          priority
+          className="h-auto w-full"
+        />
+        <figcaption className="px-6 py-5 text-center">
+          <p className="text-lg font-semibold tracking-tight">
+            &ldquo;{BATCH_MOTTO}&rdquo;
+          </p>
+          <p className="mt-1 text-sm text-[var(--muted)]">&mdash; {BATCH_LABEL}</p>
+        </figcaption>
+      </figure>
 
       <h2 className="mt-12 text-xl font-semibold">Contributors</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -65,7 +84,7 @@ export default function AboutPage() {
         ))}
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold">Support</h2>
+      <h2 className="mt-12 text-xl font-semibold">Help &amp; support</h2>
       <p className="mt-3 text-[var(--muted)]">
         Questions, access requests or bug reports go to{" "}
         <a
@@ -78,7 +97,7 @@ export default function AboutPage() {
       </p>
 
       <p className="mt-8 text-sm text-[var(--muted)]">
-        Source code:{" "}
+        Source:{" "}
         <a
           href={REPO_URL}
           target="_blank"
@@ -86,9 +105,8 @@ export default function AboutPage() {
           className="text-[var(--accent)] hover:underline"
         >
           github.com/hardik-05/xlmafia
-        </a>{" "}
-        &middot; <Link href="/" className="hover:underline">Back to home</Link>
+        </a>
       </p>
-    </main>
+    </div>
   );
 }

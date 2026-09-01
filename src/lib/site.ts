@@ -8,6 +8,10 @@ export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURICompon
 
 export const REPO_URL = "https://github.com/hardik-05/xlmafia";
 
+export const BATCH_LABEL = "Batch of 2026-28";
+export const BATCH_MOTTO = "Alone we cram. Together we ace.";
+export const BATCH_PHOTO = "/batch-26-28.jpg";
+
 export interface Contributor {
   name: string;
   role: string;
