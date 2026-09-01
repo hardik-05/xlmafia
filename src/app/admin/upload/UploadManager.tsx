@@ -78,8 +78,18 @@ function extOf(name: string): string {
   return e && e.length <= 5 ? e : "bin";
 }
 
-export default function UploadManager({ subjects }: { subjects: Subject[] }) {
-  const [subjectId, setSubjectId] = useState(subjects[0]?.id ?? "");
+export default function UploadManager({
+  subjects,
+  defaultSubjectId,
+}: {
+  subjects: Subject[];
+  defaultSubjectId?: string;
+}) {
+  const initialSubject =
+    defaultSubjectId && subjects.some((s) => s.id === defaultSubjectId)
+      ? defaultSubjectId
+      : (subjects[0]?.id ?? "");
+  const [subjectId, setSubjectId] = useState(initialSubject);
   const [items, setItems] = useState<Item[]>([]);
   const [running, setRunning] = useState(false);
 

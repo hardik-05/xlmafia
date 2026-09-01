@@ -88,7 +88,7 @@ export default async function AdminHome() {
             {subjects.map((s) => (
               <Link
                 key={s.id}
-                href={`/subjects/${s.id}`}
+                href={`/admin/upload?subject=${s.id}`}
                 className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
               >
                 <span className="font-mono text-xs uppercase tracking-wide text-[var(--accent)]">
