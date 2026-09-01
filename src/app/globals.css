@@ -165,6 +165,19 @@ a {
   box-shadow: 0 0 0 3px var(--accent-weak);
 }
 
+/* Search input with a leading icon - defined after .field so its padding wins
+   over .field's shorthand, and native search chrome is suppressed. */
+.search-field {
+  padding-left: 2.5rem;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* ---------------------------------------------------------------------------
    Document viewer shell - bounded box that scrolls internally so the page
    itself stays short and comments sit right below.

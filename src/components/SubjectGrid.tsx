@@ -26,7 +26,7 @@ export default function SubjectGrid({
       <div className="sticky top-[61px] z-30 -mx-4 bg-[var(--background)]/90 px-4 py-2 backdrop-blur-lg sm:-mx-6 sm:px-6">
         <div className="relative">
           <svg
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
             width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" strokeWidth="2" strokeLinecap="round"
           >
@@ -39,7 +39,7 @@ export default function SubjectGrid({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search subjects by name or code…"
             aria-label="Search subjects"
-            className="field pl-10"
+            className="field search-field"
           />
         </div>
       </div>

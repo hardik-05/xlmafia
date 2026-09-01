@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 
 export const metadata = { title: "Admin · XL Notes" };
 
@@ -43,16 +45,12 @@ export default async function AdminLayout({
           <Link href="/admin/upload" className="nav-link">
             Upload
           </Link>
-          <div className="ml-auto flex items-center gap-1">
-            <Link href="/dashboard" className="nav-link">
-              User view
-            </Link>
-            <span className="hidden px-2 text-sm text-[var(--muted)] sm:inline">
-              {(profile?.email ?? "").split("@")[0]}
-            </span>
-            <a href="/auth/signout" className="nav-link">
-              Sign out
-            </a>
+          <div className="ml-auto flex items-center gap-2">
+            <UserMenu
+              handle={(profile?.email ?? "").split("@")[0] || "account"}
+              isAdmin
+            />
+            <ThemeToggle />
           </div>
         </div>
       </header>
