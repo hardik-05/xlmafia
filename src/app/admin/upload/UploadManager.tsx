@@ -56,6 +56,7 @@ interface Item {
   file: File;
   kind: FileKind;
   title: string;
+  description: string;
   docDate: string;
   sessionTag: string;
   compress: boolean;
@@ -115,6 +116,7 @@ export default function UploadManager({
           file,
           kind,
           title: file.name.replace(/\.[^.]+$/, ""),
+          description: "",
           docDate: "",
           sessionTag: "",
           compress: true,
@@ -191,7 +193,7 @@ export default function UploadManager({
       body: JSON.stringify({
         subjectId,
         title: it.title.trim(),
-        description: "",
+        description: it.description.trim(),
         docDate: it.docDate || "",
         sessionTag: it.sessionTag || "",
         storagePath: path,
@@ -342,6 +344,19 @@ export default function UploadManager({
                   disabled={it.status === "done" || running}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                 />
+                <label className="mb-1 mt-2 block text-[11px] text-[var(--muted)]">
+                  Description (optional)
+                </label>
+                <input
+                  value={it.description}
+                  onChange={(e) =>
+                    patch(it.key, { description: e.target.value })
+                  }
+                  maxLength={400}
+                  placeholder="Shown under the title when opened"
+                  disabled={it.status === "done" || running}
+                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                />
               </div>
               <div>
                 <label className="mb-1 block text-[11px] text-[var(--muted)]">
@@ -404,7 +419,7 @@ export default function UploadManager({
           </span>
           {doneCount > 0 && subjectId && (
             <Link
-              href={`/subjects/${subjectId}`}
+              href={`/admin/subjects/${subjectId}`}
               className="text-sm text-[var(--accent)] hover:underline"
             >
               View subject

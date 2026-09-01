@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 interface NoteRow {
   id: string;
   title: string;
+  description: string | null;
   file_kind: FileKind;
   rendered_html: string | null;
   subject_id: string;
@@ -28,7 +29,9 @@ export default async function ViewerPage({
 
   const { data: note } = await supabase
     .from("notes")
-    .select("id, title, file_kind, rendered_html, subject_id, subjects(name, code)")
+    .select(
+      "id, title, description, file_kind, rendered_html, subject_id, subjects(name, code)",
+    )
     .eq("id", noteId)
     .single<NoteRow>();
 
@@ -54,6 +57,9 @@ export default async function ViewerPage({
           label={`Back to ${note.subjects?.name ?? "subject"}`}
         />
         <h1 className="mt-3 text-2xl font-bold tracking-tight">{note.title}</h1>
+        {note.description && (
+          <p className="mt-1 text-sm text-[var(--muted)]">{note.description}</p>
+        )}
       </div>
 
       <DocViewer

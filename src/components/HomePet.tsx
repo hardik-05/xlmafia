@@ -7,15 +7,20 @@ type Pose = "idle" | "walk" | "hop" | "sit";
 const PET_W = 60;
 const PET_H = 50;
 const WALK_SPEED = 55; // px/s — deliberately slow
-const idleGap = () => 2000 + Math.random() * 2200;
+const REST_MIN = 4200; // ~5s pause between moves
+const REST_JITTER = 2600;
+const HOP_MAX_DIST = 240; // moves shorter than this are hops, not walks
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
+const tf = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
+
+const MOODS = ["calm", "look", "sniff", "scratch", "calm"] as const;
 
 /**
- * A small SVG pup that wanders the home page: perches on the heading / nav /
- * cards, sits and pulls faces, restarts walking after a few seconds, and hops
- * to a new spot when clicked. One fixed element animated with the Web
- * Animations API — no libraries, GPU-composited, paused when the tab is hidden,
- * disabled for prefers-reduced-motion and on narrow screens.
+ * A small SVG pup that hops around the home page: perches on the heading / nav
+ * / cards, rests ~5s pulling faces, then hops to a *nearby* perch (long walks
+ * are rare). Click it to hop somewhere close. One fixed element animated with
+ * the Web Animations API — no libraries, GPU-composited, paused when the tab
+ * is hidden, off for reduced-motion and < 768px.
  */
 export default function HomePet() {
   const [mounted, setMounted] = useState(false);
@@ -38,136 +43,161 @@ export default function HomePet() {
     const root = rootRef.current;
     if (!mounted || !root) return;
 
-    const pos = { x: 56, y: window.innerHeight - PET_H - 28 };
+    const W = () => window.innerWidth;
+    const H = () => window.innerHeight;
+    const pos = { x: 56, y: H() - PET_H - 28 };
     let anim: Animation | null = null;
     let timer: number | null = null;
+    let moodInt: number | null = null;
 
     const apply = () => {
-      root.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+      root.style.transform = tf(pos.x, pos.y);
     };
     const setPose = (p: Pose) => {
       root.dataset.pose = p;
     };
+    const setMood = (m: string) => {
+      root.dataset.mood = m;
+    };
     const setFace = (dir: number) => {
       root.dataset.face = dir < 0 ? "left" : "right";
     };
-    const clearTimer = () => {
+    const clearAll = () => {
       if (timer !== null) {
         clearTimeout(timer);
         timer = null;
       }
-    };
-    const schedule = (fn: () => void, ms: number) => {
-      clearTimer();
-      timer = window.setTimeout(fn, ms);
+      if (moodInt !== null) {
+        clearInterval(moodInt);
+        moodInt = null;
+      }
+      anim?.cancel();
+      anim = null;
     };
 
-    const perches = () =>
+    const perchTargets = () =>
       Array.from(document.querySelectorAll<HTMLElement>("[data-pet-perch]"))
         .map((el) => el.getBoundingClientRect())
-        .filter(
-          (r) => r.width > 24 && r.top < window.innerHeight - 30 && r.bottom > 8,
-        );
+        .filter((r) => r.width > 24 && r.top < H() - 30 && r.bottom > 8)
+        .map((r) => ({
+          x: clamp(
+            r.left + r.width * (0.2 + Math.random() * 0.6) - PET_W / 2,
+            4,
+            W() - PET_W - 4,
+          ),
+          y: clamp(r.top - PET_H + 10, 4, H() - PET_H - 4),
+        }));
 
     apply();
 
-    const idle = () => {
-      anim?.cancel();
-      anim = null;
-      setPose(Math.random() < 0.55 ? "sit" : "idle");
-      schedule(wander, idleGap());
-    };
-
-    const wander = () => {
-      const ps = perches();
-      let tx: number;
-      let ty: number;
-      if (ps.length && Math.random() < 0.82) {
-        const r = ps[Math.floor(Math.random() * ps.length)];
-        tx = clamp(
-          r.left + 14 + Math.random() * Math.max(0, r.width - 28) - PET_W / 2,
-          4,
-          window.innerWidth - PET_W - 4,
-        );
-        ty = clamp(
-          r.top - PET_H + 10,
-          4,
-          window.innerHeight - PET_H - 4,
-        );
+    const rest = () => {
+      clearAll();
+      const sit = Math.random() < 0.5;
+      setPose(sit ? "sit" : "idle");
+      if (sit) {
+        setMood("calm");
       } else {
-        tx = 24 + Math.random() * (window.innerWidth - PET_W - 48);
-        ty = window.innerHeight - PET_H - 28;
+        let i = 0;
+        setMood(MOODS[0]);
+        moodInt = window.setInterval(
+          () => {
+            i += 1;
+            setMood(MOODS[i % MOODS.length]);
+          },
+          1400 + Math.random() * 900,
+        );
       }
-      const dx = tx - pos.x;
-      const dist = Math.hypot(dx, ty - pos.y);
-      if (dist < 10) {
-        idle();
-        return;
-      }
-      setFace(dx);
-      setPose("walk");
-      const dur = clamp((dist / WALK_SPEED) * 1000, 500, 6500);
-      anim?.cancel();
-      anim = root.animate(
-        [
-          { transform: `translate3d(${pos.x}px, ${pos.y}px, 0)` },
-          { transform: `translate3d(${tx}px, ${ty}px, 0)` },
-        ],
-        { duration: dur, easing: "linear", fill: "forwards" },
+      timer = window.setTimeout(
+        wander,
+        REST_MIN + Math.random() * REST_JITTER,
       );
-      anim.onfinish = () => {
-        pos.x = tx;
-        pos.y = ty;
-        apply();
-        idle();
-      };
     };
 
-    const hop = () => {
-      clearTimer();
-      anim?.cancel();
-      setPose("hop");
-      const tx = 24 + Math.random() * (window.innerWidth - PET_W - 48);
-      const ty = clamp(
-        pos.y + (Math.random() * 200 - 110),
-        70,
-        window.innerHeight - PET_H - 28,
+    const pickTarget = () => {
+      const cands = perchTargets()
+        .map((t) => ({ ...t, d: Math.hypot(t.x - pos.x, t.y - pos.y) }))
+        .filter((t) => t.d > 26)
+        .sort((a, b) => a.d - b.d);
+      if (cands.length) {
+        const pool = cands.slice(0, Math.min(3, cands.length));
+        const r = Math.random();
+        const idx = r < 0.62 ? 0 : r < 0.87 ? 1 : Math.min(2, pool.length - 1);
+        return pool[idx];
+      }
+      const nx = clamp(
+        pos.x + (Math.random() * 260 - 130),
+        20,
+        W() - PET_W - 20,
       );
-      setFace(tx - pos.x);
+      return { x: nx, y: H() - PET_H - 28, d: Math.abs(nx - pos.x) };
+    };
+
+    const finishAt = (tx: number, ty: number) => {
+      pos.x = tx;
+      pos.y = ty;
+      apply();
+      rest();
+    };
+
+    const walkTo = (tx: number, ty: number) => {
+      setPose("walk");
+      const dist = Math.hypot(tx - pos.x, ty - pos.y);
+      const dur = clamp((dist / WALK_SPEED) * 1000, 500, 5000);
+      anim?.cancel();
+      anim = root.animate([{ transform: tf(pos.x, pos.y) }, { transform: tf(tx, ty) }], {
+        duration: dur,
+        easing: "linear",
+        fill: "forwards",
+      });
+      anim.onfinish = () => finishAt(tx, ty);
+    };
+
+    const hopTo = (tx: number, ty: number) => {
+      setPose("hop");
       const midX = (pos.x + tx) / 2;
-      const midY = Math.min(pos.y, ty) - 66;
+      const rise = clamp(Math.hypot(tx - pos.x, ty - pos.y) * 0.55, 34, 82);
+      const midY = Math.min(pos.y, ty) - rise;
+      anim?.cancel();
       anim = root.animate(
         [
-          { transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`, offset: 0 },
-          {
-            transform: `translate3d(${midX}px, ${midY}px, 0)`,
-            offset: 0.5,
-            easing: "ease-out",
-          },
-          {
-            transform: `translate3d(${tx}px, ${ty}px, 0)`,
-            offset: 1,
-            easing: "ease-in",
-          },
+          { transform: tf(pos.x, pos.y), offset: 0 },
+          { transform: tf(midX, midY), offset: 0.5, easing: "ease-out" },
+          { transform: tf(tx, ty), offset: 1, easing: "ease-in" },
         ],
-        { duration: 640, fill: "forwards" },
+        { duration: 560, fill: "forwards" },
       );
-      anim.onfinish = () => {
-        pos.x = tx;
-        pos.y = ty;
-        apply();
-        idle();
-      };
+      anim.onfinish = () => finishAt(tx, ty);
     };
-    hopRef.current = hop;
+
+    function wander() {
+      clearAll();
+      const t = pickTarget();
+      setFace(t.x - pos.x);
+      if (t.d <= HOP_MAX_DIST) hopTo(t.x, t.y);
+      else walkTo(t.x, t.y);
+    }
+
+    hopRef.current = () => {
+      clearAll();
+      const ang = Math.random() * Math.PI * 2;
+      const r = 90 + Math.random() * 150;
+      const tx = clamp(pos.x + Math.cos(ang) * r, 20, W() - PET_W - 20);
+      const ty = clamp(pos.y + Math.sin(ang) * r, 70, H() - PET_H - 28);
+      setFace(tx - pos.x);
+      hopTo(tx, ty);
+    };
 
     const onVis = () => {
       if (document.hidden) {
-        clearTimer();
+        if (timer !== null) {
+          clearTimeout(timer);
+          timer = null;
+        }
         anim?.pause();
-      } else {
-        if (anim && anim.playState === "paused") anim.play();
-        else if (!timer) idle();
+      } else if (anim && anim.playState === "paused") {
+        anim.play();
+      } else if (timer === null) {
+        rest();
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -180,19 +210,18 @@ export default function HomePet() {
           setMounted(false);
           return;
         }
-        pos.x = clamp(pos.x, 4, window.innerWidth - PET_W - 4);
-        pos.y = clamp(pos.y, 4, window.innerHeight - PET_H - 4);
+        pos.x = clamp(pos.x, 4, W() - PET_W - 4);
+        pos.y = clamp(pos.y, 4, H() - PET_H - 4);
         apply();
       }, 200);
     };
     window.addEventListener("resize", onResize);
 
-    const start = window.setTimeout(idle, 700);
+    const start = window.setTimeout(rest, 700);
 
     return () => {
       window.clearTimeout(start);
-      clearTimer();
-      anim?.cancel();
+      clearAll();
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", onResize);
       if (rt) clearTimeout(rt);
@@ -212,7 +241,13 @@ export default function HomePet() {
   if (!mounted) return null;
 
   return (
-    <div ref={rootRef} className="pet-root" data-pose="idle" data-face="right">
+    <div
+      ref={rootRef}
+      className="pet-root"
+      data-pose="idle"
+      data-mood="calm"
+      data-face="right"
+    >
       <button
         type="button"
         className="pet-x"
@@ -222,11 +257,7 @@ export default function HomePet() {
       >
         ×
       </button>
-      <div
-        className="pet"
-        onClick={() => hopRef.current()}
-        role="presentation"
-      >
+      <div className="pet" onClick={() => hopRef.current()} role="presentation">
         <div className="pet-face">
           <svg viewBox="0 0 60 50" xmlns="http://www.w3.org/2000/svg">
             <ellipse className="pet-shadow" cx="30" cy="47" rx="17" ry="3.4" />

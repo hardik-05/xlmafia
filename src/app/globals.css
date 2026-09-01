@@ -402,12 +402,20 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 .pet-root:hover .pet-x { opacity: 1; }
 
-/* idle */
+/* idle - base loops (run under every mood) */
 .pet-root[data-pose="idle"] .pet-body { animation: pet-breathe 3.2s ease-in-out infinite; }
 .pet-root[data-pose="idle"] .pet-tail { animation: pet-wag 1.1s ease-in-out infinite; }
 .pet-root[data-pose="idle"] .pet-ear { animation: pet-eartwitch 5s infinite; }
 .pet-root[data-pose="idle"] .pet-eye,
 .pet-root[data-pose="walk"] .pet-eye { animation: pet-blink 4.6s infinite; }
+
+/* idle moods - cycled by the component every ~1.5-2.5s */
+.pet-root[data-pose="idle"][data-mood="look"] .pet { animation: pet-look 2.6s ease-in-out infinite; }
+.pet-root[data-pose="idle"][data-mood="sniff"] .pet { animation: pet-sniff 0.85s ease-in-out infinite; }
+.pet-root[data-pose="idle"][data-mood="sniff"] .pet-tail { animation: pet-wag 0.35s ease-in-out infinite; }
+.pet-root[data-pose="idle"][data-mood="scratch"] .pet { animation: pet-scratchbob 0.4s ease-in-out infinite; }
+.pet-root[data-pose="idle"][data-mood="scratch"] .pet-legB { animation: pet-scratch 0.13s linear infinite; }
+.pet-root[data-pose="idle"][data-mood="scratch"] .pet-eye { transform: scaleY(0.35); }
 
 /* walk */
 .pet-root[data-pose="walk"] .pet { animation: pet-bob 0.32s ease-in-out infinite; }
@@ -445,6 +453,10 @@ input[type="search"]::-webkit-search-results-decoration {
   75% { transform: translateY(0) scaleY(0.94); }
   100% { transform: translateY(0) scaleY(1); }
 }
+@keyframes pet-look { 0%, 100% { transform: rotate(0); } 28% { transform: rotate(-7deg); } 62% { transform: rotate(6deg); } }
+@keyframes pet-sniff { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(1.6px); } }
+@keyframes pet-scratchbob { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-4deg); } }
+@keyframes pet-scratch { 0% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-20deg); } 100% { transform: translateY(0) rotate(0); } }
 @media (prefers-reduced-motion: reduce) {
   .pet-root { display: none; }
 }

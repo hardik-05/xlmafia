@@ -111,12 +111,20 @@ export default function SubjectManager({
                 </td>
                 <td className="px-4 py-3">{s.note_count}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/upload?subject=${s.id}`}
-                    className="text-[var(--accent)] hover:underline"
-                  >
-                    Upload
-                  </Link>
+                  <span className="inline-flex gap-3">
+                    <Link
+                      href={`/admin/subjects/${s.id}`}
+                      className="text-[var(--accent)] hover:underline"
+                    >
+                      Manage
+                    </Link>
+                    <Link
+                      href={`/admin/upload?subject=${s.id}`}
+                      className="text-[var(--accent)] hover:underline"
+                    >
+                      Upload
+                    </Link>
+                  </span>
                 </td>
               </tr>
             ))}
