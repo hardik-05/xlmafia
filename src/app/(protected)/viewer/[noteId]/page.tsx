@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { FILE_KIND_LABEL, type FileKind } from "@/lib/types";
+import type { FileKind } from "@/lib/types";
 import SecureDocViewer from "@/components/secure/SecureDocViewer";
-import LikeButton from "@/components/LikeButton";
 import CommentThread from "@/components/CommentThread";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +10,8 @@ export const dynamic = "force-dynamic";
 interface NoteRow {
   id: string;
   title: string;
-  description: string | null;
-  doc_date: string | null;
-  session_tag: string | null;
   file_kind: FileKind;
-  thumbs_up: number;
+  rendered_html: string | null;
   subject_id: string;
   subjects: { name: string; code: string } | null;
 }
@@ -32,9 +28,7 @@ export default async function ViewerPage({
 
   const { data: note } = await supabase
     .from("notes")
-    .select(
-      "id, title, description, doc_date, session_tag, file_kind, thumbs_up, subject_id, subjects(name, code)",
-    )
+    .select("id, title, file_kind, rendered_html, subject_id, subjects(name, code)")
     .eq("id", noteId)
     .single<NoteRow>();
 
@@ -61,27 +55,14 @@ export default async function ViewerPage({
         >
           &larr; {note.subjects?.name ?? "Subject"}
         </Link>
-        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-semibold">{note.title}</h1>
-            <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-[var(--muted)]">
-              <span className="rounded bg-[var(--surface-2)] px-1.5 py-0.5 font-semibold uppercase">
-                {FILE_KIND_LABEL[note.file_kind]}
-              </span>
-              {note.session_tag && <span>#{note.session_tag}</span>}
-              {note.doc_date && <span>{note.doc_date}</span>}
-            </p>
-            {note.description && (
-              <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
-                {note.description}
-              </p>
-            )}
-          </div>
-          <LikeButton noteId={note.id} initialCount={note.thumbs_up} />
-        </div>
+        <h1 className="mt-2 text-xl font-semibold">{note.title}</h1>
       </div>
 
-      <SecureDocViewer noteId={note.id} fileKind={note.file_kind} />
+      <SecureDocViewer
+        noteId={note.id}
+        fileKind={note.file_kind}
+        renderedHtml={note.rendered_html}
+      />
 
       <CommentThread
         noteId={note.id}

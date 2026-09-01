@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Link from "next/link";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   classifyFile,
@@ -10,6 +12,35 @@ import {
   type FileKind,
 } from "@/lib/validation";
 import type { Subject } from "@/lib/types";
+
+const SANITIZE_OPTS = {
+  USE_PROFILES: { html: true },
+  FORBID_TAGS: ["style", "iframe", "form", "input", "script"] as string[],
+  FORBID_ATTR: ["style", "srcset"] as string[],
+};
+
+/**
+ * Converts md/docx to sanitised HTML at upload time so the viewer renders
+ * instantly. Returns undefined for pdf/image (rendered live) or on failure.
+ */
+async function prerenderHtml(file: File, kind: FileKind): Promise<string | undefined> {
+  try {
+    if (kind === "md") {
+      const raw = await marked.parse(await file.text(), { async: true, gfm: true });
+      return DOMPurify.sanitize(raw, SANITIZE_OPTS);
+    }
+    if (kind === "docx") {
+      const mammoth = await import("mammoth/mammoth.browser");
+      const { value } = await mammoth.convertToHtml({
+        arrayBuffer: await file.arrayBuffer(),
+      });
+      return DOMPurify.sanitize(value || "<p>(empty document)</p>", SANITIZE_OPTS);
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
 
 type Status = "pending" | "uploading" | "done" | "error";
 
@@ -111,6 +142,9 @@ export default function UploadManager({ subjects }: { subjects: Subject[] }) {
       return;
     }
 
+    // Pre-process md/docx to HTML now so the reader gets an instant render.
+    const renderedHtml = await prerenderHtml(it.file, it.kind);
+
     const res = await fetch("/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,6 +158,7 @@ export default function UploadManager({ subjects }: { subjects: Subject[] }) {
         fileKind: it.kind,
         mimeType: it.file.type || CONTENT_TYPE[it.kind],
         fileSize: it.file.size,
+        ...(renderedHtml ? { renderedHtml } : {}),
       }),
     });
 
@@ -219,10 +254,13 @@ export default function UploadManager({ subjects }: { subjects: Subject[] }) {
                     {it.file.name}
                   </span>
                 </div>
+                <label className="mb-1 block text-[11px] text-[var(--muted)]">
+                  Topic name (required)
+                </label>
                 <input
                   value={it.title}
                   onChange={(e) => patch(it.key, { title: e.target.value })}
-                  placeholder="Title (required)"
+                  placeholder="e.g. Time Value of Money"
                   disabled={it.status === "done" || running}
                   className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                 />
@@ -241,7 +279,7 @@ export default function UploadManager({ subjects }: { subjects: Subject[] }) {
               </div>
               <div>
                 <label className="mb-1 block text-[11px] text-[var(--muted)]">
-                  Session ID / tag
+                  Session ID
                 </label>
                 <input
                   value={it.sessionTag}

@@ -11,7 +11,6 @@ export interface Subject {
 
 export interface SubjectWithStats extends Subject {
   note_count: number;
-  total_thumbs_up: number;
 }
 
 export interface Note {
@@ -24,7 +23,6 @@ export interface Note {
   file_kind: FileKind;
   mime_type: string | null;
   file_size: number | null;
-  thumbs_up: number;
   created_at: string;
 }
 

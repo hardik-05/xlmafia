@@ -5,7 +5,7 @@ import { noteMetadataSchema } from "@/lib/validation";
 export const dynamic = "force-dynamic";
 
 const NOTE_COLUMNS =
-  "id, subject_id, title, description, doc_date, session_tag, file_kind, mime_type, file_size, thumbs_up, created_at";
+  "id, subject_id, title, description, doc_date, session_tag, file_kind, mime_type, file_size, created_at";
 
 /** GET /api/notes?subjectId=... - notes for a subject (any signed-in user). */
 export const GET = withErrors(async (request: NextRequest) => {
@@ -61,6 +61,7 @@ export const POST = withErrors(async (request: NextRequest) => {
       file_kind: m.fileKind,
       mime_type: m.mimeType ?? null,
       file_size: m.fileSize ?? null,
+      rendered_html: m.renderedHtml ?? null,
       uploaded_by: userId,
     })
     .select(NOTE_COLUMNS)

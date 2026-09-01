@@ -15,9 +15,7 @@ export const GET = withErrors(async () => {
         .from("subjects")
         .select("id, name, code, created_at")
         .order("name", { ascending: true }),
-      supabase
-        .from("subject_stats")
-        .select("subject_id, note_count, total_thumbs_up"),
+      supabase.from("subject_stats").select("subject_id, note_count"),
     ]);
 
   if (sErr || stErr) {
@@ -28,14 +26,10 @@ export const GET = withErrors(async () => {
     (stats ?? []).map((s) => [s.subject_id as string, s]),
   );
 
-  const merged: SubjectWithStats[] = (subjects ?? []).map((s) => {
-    const st = byId.get(s.id);
-    return {
-      ...s,
-      note_count: Number(st?.note_count ?? 0),
-      total_thumbs_up: Number(st?.total_thumbs_up ?? 0),
-    };
-  });
+  const merged: SubjectWithStats[] = (subjects ?? []).map((s) => ({
+    ...s,
+    note_count: Number(byId.get(s.id)?.note_count ?? 0),
+  }));
 
   return NextResponse.json({ subjects: merged });
 });

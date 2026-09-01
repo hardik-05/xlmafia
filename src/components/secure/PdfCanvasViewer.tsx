@@ -1,39 +1,45 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  PDFDocumentProxy,
-  RenderTask,
-} from "pdfjs-dist";
+import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 
 type LoadState = "loading" | "ready" | "error";
+type ViewMode = "single" | "double";
 
 /**
- * Renders a PDF strictly as <canvas> pages using pdf.js. No text layer is
- * created, so there is no selectable DOM text to copy. Bytes are fetched once
- * from our auth-gated API endpoint.
+ * Renders a PDF strictly as <canvas> pages using pdf.js - no text layer, so
+ * there is no selectable DOM text. The view is always page-wise (never one
+ * long scroll): choose one page or a two-page spread and page through.
  */
 export default function PdfCanvasViewer({ src }: { src: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const docRef = useRef<PDFDocumentProxy | null>(null);
-  const renderTaskRef = useRef<RenderTask | null>(null);
+  const tasksRef = useRef<RenderTask[]>([]);
 
   const [state, setState] = useState<LoadState>("loading");
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState("");
   const [numPages, setNumPages] = useState(0);
-  const [page, setPage] = useState(1);
+  const [start, setStart] = useState(1); // first page of the current spread
+  const [mode, setMode] = useState<ViewMode>("single");
   const [zoom, setZoom] = useState(1);
 
-  // Load the document once.
+  const step = mode === "double" ? 2 : 1;
+  const visible: number[] = [];
+  for (let i = 0; i < step; i++) {
+    const p = start + i;
+    if (p <= numPages) visible.push(p);
+  }
+
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
         setState("loading");
-        // pdf.js v4 relies on Promise.withResolvers (very recent browsers).
-        if (typeof (Promise as unknown as { withResolvers?: unknown }).withResolvers !== "function") {
+        if (
+          typeof (Promise as unknown as { withResolvers?: unknown })
+            .withResolvers !== "function"
+        ) {
           (Promise as unknown as { withResolvers: () => unknown }).withResolvers =
             function <T>() {
               let resolve!: (v: T) => void;
@@ -64,7 +70,7 @@ export default function PdfCanvasViewer({ src }: { src: string }) {
         }
         docRef.current = doc;
         setNumPages(doc.numPages);
-        setPage(1);
+        setStart(1);
         setState("ready");
       } catch (err) {
         if (!cancelled) {
@@ -76,69 +82,85 @@ export default function PdfCanvasViewer({ src }: { src: string }) {
 
     return () => {
       cancelled = true;
-      renderTaskRef.current?.cancel();
+      tasksRef.current.forEach((t) => t.cancel());
       docRef.current?.destroy();
       docRef.current = null;
     };
   }, [src]);
 
-  const renderPage = useCallback(async () => {
+  const renderSpread = useCallback(async () => {
     const doc = docRef.current;
-    const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!doc || !canvas || !container) return;
+    if (!doc || !container) return;
 
-    renderTaskRef.current?.cancel();
+    tasksRef.current.forEach((t) => t.cancel());
+    tasksRef.current = [];
 
-    const pdfPage = await doc.getPage(page);
+    const count = Math.max(1, visible.length);
+    const gap = 12;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const unscaled = pdfPage.getViewport({ scale: 1 });
-    const fit = (container.clientWidth - 4) / unscaled.width;
-    const cssScale = Math.max(0.2, fit * zoom);
-    // Bake devicePixelRatio into the render scale for a crisp canvas.
-    const viewport = pdfPage.getViewport({ scale: cssScale * dpr });
+    const avail =
+      (container.clientWidth - (count - 1) * gap - 4) / count;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    for (let i = 0; i < visible.length; i++) {
+      const canvas = canvasRefs.current[i];
+      if (!canvas) continue;
+      const pdfPage = await doc.getPage(visible[i]);
+      const unscaled = pdfPage.getViewport({ scale: 1 });
+      const cssScale = Math.max(0.15, (avail / unscaled.width) * zoom);
+      const viewport = pdfPage.getViewport({ scale: cssScale * dpr });
 
-    canvas.width = Math.floor(viewport.width);
-    canvas.height = Math.floor(viewport.height);
-    canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
-    canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) continue;
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
+      canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
 
-    const task = pdfPage.render({ canvasContext: ctx, viewport });
-    renderTaskRef.current = task;
-
-    try {
-      await task.promise;
-    } catch (err) {
-      // RenderingCancelledException is expected on rapid page/zoom changes.
-      if (
-        err &&
-        typeof err === "object" &&
-        "name" in err &&
-        err.name !== "RenderingCancelledException"
-      ) {
-        setMessage("Failed to render this page");
-        setState("error");
+      const task = pdfPage.render({ canvasContext: ctx, viewport });
+      tasksRef.current.push(task);
+      try {
+        await task.promise;
+      } catch (err) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "name" in err &&
+          (err as { name: string }).name !== "RenderingCancelledException"
+        ) {
+          setMessage("Failed to render this page");
+          setState("error");
+        }
       }
     }
-  }, [page, zoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start, mode, zoom, numPages]);
 
   useEffect(() => {
     if (state !== "ready") return;
-    void renderPage();
-  }, [state, renderPage]);
+    void renderSpread();
+  }, [state, renderSpread]);
 
-  // Re-fit on container resize.
   useEffect(() => {
     if (state !== "ready") return;
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => void renderPage());
+    const ro = new ResizeObserver(() => void renderSpread());
     ro.observe(el);
     return () => ro.disconnect();
-  }, [state, renderPage]);
+  }, [state, renderSpread]);
+
+  // Keep `start` valid when the mode changes.
+  useEffect(() => {
+    setStart((s) => Math.min(s, Math.max(1, numPages)));
+  }, [mode, numPages]);
+
+  const atStart = start <= 1;
+  const atEnd = start + step - 1 >= numPages;
+  const label =
+    visible.length > 1
+      ? `Pages ${visible[0]}–${visible[visible.length - 1]} / ${numPages}`
+      : `Page ${start} / ${numPages}`;
 
   return (
     <div ref={containerRef} className="w-full">
@@ -159,27 +181,58 @@ export default function PdfCanvasViewer({ src }: { src: string }) {
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
             <button
               type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
+              onClick={() => setStart((p) => Math.max(1, p - step))}
+              disabled={atStart}
               className="rounded border border-[var(--border)] px-3 py-1 disabled:opacity-40"
             >
               Prev
             </button>
-            <span className="tabular-nums text-[var(--muted)]">
-              Page {page} / {numPages}
-            </span>
+            <span className="tabular-nums text-[var(--muted)]">{label}</span>
             <button
               type="button"
-              onClick={() => setPage((p) => Math.min(numPages, p + 1))}
-              disabled={page >= numPages}
+              onClick={() =>
+                setStart((p) => (p + step > numPages ? p : p + step))
+              }
+              disabled={atEnd}
               className="rounded border border-[var(--border)] px-3 py-1 disabled:opacity-40"
             >
               Next
             </button>
+
             <span className="mx-2 h-4 w-px bg-[var(--border)]" />
+
+            <div className="inline-flex overflow-hidden rounded border border-[var(--border)]">
+              <button
+                type="button"
+                onClick={() => setMode("single")}
+                className={`px-3 py-1 ${
+                  mode === "single"
+                    ? "bg-[var(--accent)] text-[var(--accent-contrast)]"
+                    : ""
+                }`}
+              >
+                1 page
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("double")}
+                className={`border-l border-[var(--border)] px-3 py-1 ${
+                  mode === "double"
+                    ? "bg-[var(--accent)] text-[var(--accent-contrast)]"
+                    : ""
+                }`}
+              >
+                2 pages
+              </button>
+            </div>
+
+            <span className="mx-2 h-4 w-px bg-[var(--border)]" />
+
             <button
               type="button"
-              onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}
+              onClick={() =>
+                setZoom((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))
+              }
               className="rounded border border-[var(--border)] px-3 py-1"
             >
               -
@@ -196,8 +249,16 @@ export default function PdfCanvasViewer({ src }: { src: string }) {
             </button>
           </div>
 
-          <div className="flex justify-center overflow-auto rounded-lg border border-[var(--border)] bg-[#333] p-1">
-            <canvas ref={canvasRef} className="block max-w-full" />
+          <div className="flex justify-center gap-3 overflow-auto rounded-lg border border-[var(--border)] bg-[#333] p-2">
+            {visible.map((p, i) => (
+              <canvas
+                key={p}
+                ref={(el) => {
+                  canvasRefs.current[i] = el;
+                }}
+                className="block h-auto max-w-full self-start bg-white"
+              />
+            ))}
           </div>
         </>
       )}

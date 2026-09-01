@@ -3,26 +3,39 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-async function counts() {
+async function loadOverview() {
   const supabase = await createSupabaseServerClient();
-  const [subjects, notes, comments] = await Promise.all([
-    supabase.from("subjects").select("id", { count: "exact", head: true }),
+  const [subjectsRes, notes, comments, stats] = await Promise.all([
+    supabase.from("subjects").select("id, name, code").order("name"),
     supabase.from("notes").select("id", { count: "exact", head: true }),
     supabase.from("comments").select("id", { count: "exact", head: true }),
+    supabase.from("subject_stats").select("subject_id, note_count"),
   ]);
+
+  const byId = new Map(
+    (stats.data ?? []).map((s) => [s.subject_id as string, Number(s.note_count)]),
+  );
+  const subjects = (subjectsRes.data ?? []).map((s) => ({
+    ...s,
+    note_count: byId.get(s.id) ?? 0,
+  }));
+
   return {
-    subjects: subjects.count ?? 0,
-    notes: notes.count ?? 0,
-    comments: comments.count ?? 0,
+    subjects,
+    counts: {
+      subjects: subjects.length,
+      notes: notes.count ?? 0,
+      comments: comments.count ?? 0,
+    },
   };
 }
 
 export default async function AdminHome() {
-  const c = await counts();
+  const { subjects, counts } = await loadOverview();
   const cards = [
-    { label: "Subjects", value: c.subjects, href: "/admin/subjects" },
-    { label: "Notes", value: c.notes, href: "/admin/upload" },
-    { label: "Comments", value: c.comments, href: "/dashboard" },
+    { label: "Subjects", value: counts.subjects, href: "/admin/subjects" },
+    { label: "Notes", value: counts.notes, href: "/admin/upload" },
+    { label: "Comments", value: counts.comments, href: "/dashboard" },
   ];
 
   return (
@@ -60,6 +73,37 @@ export default async function AdminHome() {
         >
           Upload material
         </Link>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-[var(--muted)]">
+          Subjects
+        </h2>
+        {subjects.length === 0 ? (
+          <p className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-8 text-center text-sm text-[var(--muted)]">
+            No subjects yet. Create one to start uploading.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {subjects.map((s) => (
+              <Link
+                key={s.id}
+                href={`/subjects/${s.id}`}
+                className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+              >
+                <span className="font-mono text-xs uppercase tracking-wide text-[var(--accent)]">
+                  {s.code}
+                </span>
+                <span className="mt-2 text-base font-medium leading-snug">
+                  {s.name}
+                </span>
+                <span className="mt-3 text-xs text-[var(--muted)]">
+                  {s.note_count} {s.note_count === 1 ? "note" : "notes"}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

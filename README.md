@@ -1,16 +1,16 @@
 # XLRI Secure Notes Portal
 
 A domain-restricted study-notes portal. An **Admin** uploads study material
-(PDF / Markdown / DOCX / scanned images) organised by **Subject**. Authenticated
-users from `@astra.xlri.ac.in` can search subjects, read notes in a
-**copy / download-hardened viewer**, discuss in text-only comment threads, and
-anonymously upvote notes.
+(PDF / Markdown / DOCX / scanned images) organised by **Subject**, tagging each
+with a topic name, date and session ID. Authenticated users from
+`@astra.xlri.ac.in` can search subjects and read notes in a
+**copy / download-hardened viewer** (page-wise, single or two-page) and discuss
+in text-only comment threads.
 
 Built to run entirely on **free tiers** (Vercel Hobby + Supabase Free) for a POC
 of up to ~45 concurrent users.
 
-- **Live:** https://xlmafia.vercel.app *(returns 500 until the Vercel env vars in
-  [SETUP.md](./SETUP.md) §5 are set and the project is redeployed)*
+- **Live:** https://xlmafia.vercel.app
 - **Supabase project:** `lyinnonapazyflaccmmt` (ap-south-1), schema + RLS applied
 
 ## Stack

@@ -62,6 +62,8 @@ export const noteMetadataSchema = z.object({
   fileKind: z.enum(FILE_KINDS),
   mimeType: z.string().max(200).optional(),
   fileSize: z.number().int().nonnegative().max(MAX_FILE_BYTES).optional(),
+  // Pre-sanitised HTML for md/docx, produced at upload time. ~5 MB ceiling.
+  renderedHtml: z.string().max(5_000_000).optional(),
 });
 export type NoteMetadataInput = z.infer<typeof noteMetadataSchema>;
 

@@ -15,8 +15,8 @@ const FEATURES = [
     body: "PDFs render to canvas, scans render without a draggable image, and copy, right-click, download and print are blocked.",
   },
   {
-    title: "Discuss and upvote",
-    body: "Text-only comment threads with one level of replies, plus an anonymous thumbs-up on every note.",
+    title: "Discuss",
+    body: "Text-only comment threads with one level of replies, so questions get answered in context.",
   },
   {
     title: "Domain-restricted",
@@ -43,9 +43,8 @@ export default async function LandingPage() {
           A private home for XLRI study material.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-[var(--muted)]">
-          Browse subject notes, read them in a copy-protected viewer, ask
-          questions in the comments and upvote what helps. Sign-in is limited to
-          your institute email.
+          Browse subject notes, read them in a copy-protected viewer and ask
+          questions in the comments. Sign-in is limited to your institute email.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

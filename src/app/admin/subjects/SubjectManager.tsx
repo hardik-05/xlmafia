@@ -31,10 +31,9 @@ export default function SubjectManager({
         return;
       }
       setSubjects((prev) =>
-        [
-          { ...data.subject, note_count: 0, total_thumbs_up: 0 },
-          ...prev,
-        ].sort((a, b) => a.name.localeCompare(b.name)),
+        [{ ...data.subject, note_count: 0 }, ...prev].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ),
       );
       setName("");
       setCode("");
@@ -90,7 +89,6 @@ export default function SubjectManager({
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Code</th>
               <th className="px-4 py-3 font-medium">Notes</th>
-              <th className="px-4 py-3 font-medium">Thumbs up</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
@@ -98,7 +96,7 @@ export default function SubjectManager({
             {subjects.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-4 py-8 text-center text-[var(--muted)]"
                 >
                   No subjects yet.
@@ -112,7 +110,6 @@ export default function SubjectManager({
                   {s.code}
                 </td>
                 <td className="px-4 py-3">{s.note_count}</td>
-                <td className="px-4 py-3">{s.total_thumbs_up}</td>
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/subjects/${s.id}`}
