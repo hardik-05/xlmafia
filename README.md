@@ -10,7 +10,7 @@ in text-only comment threads.
 Built to run entirely on **free tiers** (Vercel Hobby + Supabase Free) for a POC
 of up to ~45 concurrent users.
 
-- **Live:** https://xlmafia.vercel.app
+- **Live:** https://xlmafia.com
 - **Supabase project:** `lyinnonapazyflaccmmt` (ap-south-1), schema + RLS applied
 
 ## Stack

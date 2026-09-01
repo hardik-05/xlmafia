@@ -37,11 +37,11 @@ For a fresh project, run them in order in **SQL Editor** (or `supabase db push`)
 
 **Authentication → URL Configuration**
 
-- Site URL: your deployment URL (e.g. `https://xlmafia.vercel.app`); for local dev
-  add `http://localhost:3000`.
-- Redirect URLs: add
-  - `http://localhost:3000/auth/callback`
-  - `https://<your-vercel-domain>/auth/callback`
+- Site URL: `https://xlmafia.com`
+- Redirect URLs (the `/**` wildcard is required, or Supabase falls back to the
+  Site URL and links land on `/?code=…`):
+  - `https://xlmafia.com/**`
+  - `http://localhost:3000/**`
 
 **Authentication → Providers → Email**
 
@@ -73,8 +73,20 @@ npm run dev                     # http://localhost:3000
 The Vercel project **`xlmafia`** (team *hdk's projects*, Hobby plan) is linked to the
 GitHub repo `hardik-05/xlmafia`; every push to `main` auto-deploys.
 
-- Production URL: **https://xlmafia.vercel.app**
+- Production URL: **https://xlmafia.com**
 - Project: <https://vercel.com/hdks-projects-74da0404/xlmafia>
+
+**Custom domain (`xlmafia.com`, registered at GoDaddy):**
+
+1. Vercel → project → Settings → **Domains** → add `xlmafia.com` and `www.xlmafia.com`.
+2. In GoDaddy DNS, remove the default parked `A @` / `CNAME @` / forwarding, then add
+   the records Vercel shows — typically `A @ → 76.76.21.21` and
+   `CNAME www → cname.vercel-dns.com`. (Or switch GoDaddy nameservers to
+   `ns1.vercel-dns.com` / `ns2.vercel-dns.com` and let Vercel run DNS.)
+3. Set `xlmafia.com` as the **Primary** domain — Vercel then 308-redirects
+   `xlmafia.vercel.app` → `xlmafia.com`.
+4. Update `NEXT_PUBLIC_SITE_URL` (below) and the Supabase Site URL / Redirect URLs
+   to `https://xlmafia.com`, then redeploy.
 
 The build compiles without env vars (values are read lazily), but **the running app
 returns 500 on every route until the variables below are set** — middleware needs the
@@ -88,7 +100,7 @@ Supabase URL/key on every request. Add them, then redeploy.
    | `NEXT_PUBLIC_SUPABASE_URL` | `https://lyinnonapazyflaccmmt.supabase.co` |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_ZlCPLmKEsp0lz3NRx_dutg_XNg2CqNq` |
    | `SUPABASE_SERVICE_ROLE_KEY` | *(secret — copy from Supabase Dashboard → Settings → API)* |
-   | `NEXT_PUBLIC_SITE_URL` | your production URL, e.g. `https://xlmafia.vercel.app` |
+   | `NEXT_PUBLIC_SITE_URL` | your production URL, e.g. `https://xlmafia.com` |
    | `NEXT_PUBLIC_ALLOWED_EMAIL_DOMAIN` | `astra.xlri.ac.in` |
    | `ALLOWED_EMAIL_DOMAIN` | `astra.xlri.ac.in` |
 
