@@ -27,14 +27,16 @@ export default async function ProtectedLayout({
     parseLoginAt(cookieStore.get(LOGIN_AT_COOKIE)?.value) ?? Date.now();
   const stay = cookieStore.get(STAY_COOKIE)?.value === "1";
 
+  // Show only the local part of the institute email, e.g. "xof26019".
+  const handle = (profile?.email ?? "").split("@")[0] || "account";
+
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-[100dvh] flex-col">
       <SessionGuard loginAt={loginAt} stayLoggedIn={stay} />
-      <TopBar
-        displayName={profile?.full_name || profile?.email || "Signed in"}
-        isAdmin={profile?.role === "admin"}
-      />
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <TopBar handle={handle} isAdmin={profile?.role === "admin"} />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {children}
+      </main>
     </div>
   );
 }

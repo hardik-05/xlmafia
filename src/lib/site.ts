@@ -1,36 +1,32 @@
-export const SITE_NAME = "XLRI Notes Portal";
+export const SITE_NAME = "XL Notes";
 
-export const SUPPORT_EMAIL = "work.ai.hardik@gmail.com";
-
-export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-  "XLRI Notes Portal - Support",
+/** Shown to everyone (including before sign-in). */
+export const PUBLIC_SUPPORT_EMAIL = "work.ai.hardik@gmail.com";
+export const PUBLIC_SUPPORT_MAILTO = `mailto:${PUBLIC_SUPPORT_EMAIL}?subject=${encodeURIComponent(
+  "XL Notes - Support",
 )}`;
 
-export const REPO_URL = "https://github.com/hardik-05/xlmafia";
-
-export const BATCH_LABEL = "Batch of 2026-28";
-export const BATCH_MOTTO = "Alone we cram. Together we ace.";
-export const BATCH_PHOTO = "/batch-26-28.jpg";
+/** Full support routing - only shown to signed-in users. */
+export interface SupportContact {
+  email: string;
+  label: string;
+}
+export const SUPPORT_CONTACTS: SupportContact[] = [
+  { email: "xof26036@astra.xlri.ac.in", label: "Notes-related issues" },
+  { email: "xof26019@astra.xlri.ac.in", label: "Portal-related issues" },
+  { email: "work.ai.hardik@gmail.com", label: "Suggestions" },
+];
 
 export interface Contributor {
   name: string;
   role: string;
   handle: string;
-  url: string;
 }
-
-// Two entries, identical for now - edit as the team grows.
 export const CONTRIBUTORS: Contributor[] = [
-  {
-    name: "Hardik Choudhary",
-    role: "Design & Development",
-    handle: "metahdk",
-    url: "https://github.com/hardik-05",
-  },
-  {
-    name: "Hardik Choudhary",
-    role: "Design & Development",
-    handle: "metahdk",
-    url: "https://github.com/hardik-05",
-  },
+  { name: "Satvik", role: "Notes & curation", handle: "xof26036" },
+  { name: "Hardik", role: "Design & development", handle: "xof26019" },
 ];
+
+export const BATCH_LABEL = "Batch of 2026-28";
+export const BATCH_MOTTO = "Alone we cram. Together we ace.";
+export const BATCH_PHOTO = "/batch-26-28.jpg";

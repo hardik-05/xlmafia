@@ -1,49 +1,25 @@
 import Image from "next/image";
-import { ALLOWED_DOMAIN } from "@/lib/auth/domain";
 import {
   CONTRIBUTORS,
-  SUPPORT_EMAIL,
-  SUPPORT_MAILTO,
-  REPO_URL,
+  SUPPORT_CONTACTS,
   BATCH_LABEL,
   BATCH_MOTTO,
   BATCH_PHOTO,
+  SITE_NAME,
 } from "@/lib/site";
 
-export const metadata = { title: "About - XLRI Notes Portal" };
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .slice(0, 2)
-    .join("");
-}
+export const metadata = { title: "About · XL Notes" };
 
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl font-semibold tracking-tight">About</h1>
+      <h1 className="text-3xl font-bold tracking-tight">About</h1>
 
-      <div className="mt-6 space-y-4 text-[var(--muted)]">
-        <p>
-          The XLRI Notes Portal is a place for our batch to share study material.
-          An administrator uploads notes &mdash; PDFs, Markdown, Word documents
-          and scanned images &mdash; organised by subject. You browse and search
-          subjects, read notes in a fast in-app viewer (zoom, one- or two-page
-          view; downloads are disabled) and discuss in text-only threads.
-        </p>
-        <p>
-          Access is restricted to{" "}
-          <span className="font-medium text-[var(--text)]">
-            @{ALLOWED_DOMAIN}
-          </span>{" "}
-          accounts, checked at sign-in, in the API and by a database rule. It
-          runs entirely on free infrastructure.
-        </p>
-      </div>
+      <p className="mt-6 text-[var(--muted)]">
+        {SITE_NAME} is a portal for our batch to share study material.
+      </p>
 
-      <figure className="mt-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+      <figure className="mt-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]">
         <Image
           src={BATCH_PHOTO}
           alt={`XLRI ${BATCH_LABEL}`}
@@ -62,51 +38,46 @@ export default function AboutPage() {
 
       <h2 className="mt-12 text-xl font-semibold">Contributors</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {CONTRIBUTORS.map((c, i) => (
-          <a
-            key={`${c.handle}-${i}`}
-            href={c.url}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)]"
+        {CONTRIBUTORS.map((c) => (
+          <div
+            key={c.handle}
+            className="flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
           >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-sm font-semibold text-[var(--accent)]">
-              {initials(c.name)}
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--accent-weak)] text-sm font-bold text-[var(--on-accent-weak)]">
+              {c.name.slice(0, 1).toUpperCase()}
             </span>
             <span className="min-w-0">
               <span className="block truncate font-medium">{c.name}</span>
               <span className="block text-sm text-[var(--muted)]">{c.role}</span>
               <span className="block text-xs text-[var(--muted)]">
-                @{c.handle}
+                {c.handle}
               </span>
             </span>
-          </a>
+          </div>
         ))}
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold">Help &amp; support</h2>
-      <p className="mt-3 text-[var(--muted)]">
-        Questions, access requests or bug reports go to{" "}
-        <a
-          href={SUPPORT_MAILTO}
-          className="font-medium text-[var(--accent)] hover:underline"
-        >
-          {SUPPORT_EMAIL}
-        </a>
-        .
-      </p>
-
-      <p className="mt-8 text-sm text-[var(--muted)]">
-        Source:{" "}
-        <a
-          href={REPO_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="text-[var(--accent)] hover:underline"
-        >
-          github.com/hardik-05/xlmafia
-        </a>
-      </p>
+      <h2 id="support" className="mt-12 scroll-mt-24 text-xl font-semibold">
+        Help &amp; support
+      </h2>
+      <ul className="mt-4 space-y-3">
+        {SUPPORT_CONTACTS.map((s) => (
+          <li
+            key={s.email}
+            className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <span className="text-sm text-[var(--muted)]">{s.label}</span>
+            <a
+              href={`mailto:${s.email}?subject=${encodeURIComponent(
+                `XL Notes - ${s.label}`,
+              )}`}
+              className="text-sm font-medium text-[var(--accent)] hover:underline"
+            >
+              {s.email}
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import type { SubjectWithStats } from "@/lib/types";
 import SubjectGrid from "@/components/SubjectGrid";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Subjects - XLRI Notes Portal" };
+export const metadata = { title: "Notes · XL Notes" };
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -22,9 +22,10 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Subjects</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Browse by subject. Search filters by name or code.
+        <h1 className="text-2xl font-bold tracking-tight">Subjects</h1>
+        <p className="mt-1.5 text-sm text-[var(--muted)]">
+          {merged.length} {merged.length === 1 ? "subject" : "subjects"} · pick
+          one to open its notes.
         </p>
       </div>
       <SubjectGrid subjects={merged} />

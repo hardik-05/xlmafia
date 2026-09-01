@@ -63,13 +63,13 @@ export default async function AdminHome() {
       <div className="flex flex-wrap gap-3">
         <Link
           href="/admin/subjects"
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)]"
+          className="btn btn-primary"
         >
           New subject
         </Link>
         <Link
           href="/admin/upload"
-          className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium"
+          className="btn btn-ghost"
         >
           Upload material
         </Link>

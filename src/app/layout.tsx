@@ -1,9 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
+const sans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "XLRI Notes Portal",
-  description: "Domain-restricted study-notes portal for XLRI.",
+  title: "XL Notes",
+  description: "Domain-restricted study-notes portal for the XLRI batch.",
   robots: { index: false, follow: false },
 };
 
@@ -12,13 +20,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Runs before first paint: applies the saved / system theme and polyfills
-// Promise.withResolvers for pdf.js on older browsers.
+// Runs before first paint: applies a saved dark override (default is light for
+// everyone) and polyfills Promise.withResolvers for pdf.js on older browsers.
 const BOOT = `
 (function(){
   try {
-    var t = localStorage.getItem('theme');
-    if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.dataset.theme = 'dark';
+    } else {
+      document.documentElement.dataset.theme = 'light';
+    }
   } catch (e) {}
   if (typeof Promise.withResolvers !== 'function') {
     Promise.withResolvers = function () {
@@ -33,7 +44,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={sans.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: BOOT }} />
       </head>

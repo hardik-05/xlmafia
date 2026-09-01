@@ -325,7 +325,7 @@ export default function UploadManager({
             type="button"
             onClick={runBatch}
             disabled={!canRun}
-            className="rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-50"
+            className="btn btn-primary"
           >
             {running
               ? "Uploading..."

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
-import { SITE_NAME, SUPPORT_MAILTO } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 
 export default function MarketingLayout({
   children,
@@ -9,31 +8,27 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
-          <Link href="/" className="font-semibold">
+    <div className="flex h-[100dvh] flex-col overflow-hidden">
+      <header className="border-b border-[var(--border)] bg-[var(--surface)]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-[15px] font-bold tracking-tight"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent-weak)] text-[13px] font-extrabold text-[var(--on-accent-weak)]">
+              XL
+            </span>
             {SITE_NAME}
           </Link>
-          <nav className="ml-auto flex items-center gap-5 text-sm text-[var(--muted)]">
-            <Link href="/about" className="hover:text-[var(--text)]">
-              About
-            </Link>
-            <a href={SUPPORT_MAILTO} className="hover:text-[var(--text)]">
-              Support
-            </a>
-            <Link
-              href="/login"
-              className="rounded-lg bg-[var(--accent)] px-3 py-1.5 font-medium text-[var(--accent-contrast)]"
-            >
+          <nav className="ml-auto flex items-center gap-1.5">
+            <Link href="/login" className="btn btn-primary btn-sm">
               Sign in
             </Link>
             <ThemeToggle />
           </nav>
         </div>
       </header>
-      <div className="flex-1">{children}</div>
-      <SiteFooter />
+      <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
     </div>
   );
 }

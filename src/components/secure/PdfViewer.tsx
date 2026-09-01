@@ -108,13 +108,13 @@ export default function PdfViewer({ src }: { src: string }) {
 
         <div className="inline-flex overflow-hidden rounded border border-[var(--border)] text-sm">
           <button
-            className={`px-2.5 py-1 ${spread === 1 ? "bg-[var(--accent)] text-[var(--accent-contrast)]" : ""}`}
+            className={`px-2.5 py-1 ${spread === 1 ? "bg-[var(--accent-weak)] text-[var(--on-accent-weak)]" : ""}`}
             onClick={() => setSpread(1)}
           >
             1 page
           </button>
           <button
-            className={`border-l border-[var(--border)] px-2.5 py-1 ${spread === 2 ? "bg-[var(--accent)] text-[var(--accent-contrast)]" : ""}`}
+            className={`border-l border-[var(--border)] px-2.5 py-1 ${spread === 2 ? "bg-[var(--accent-weak)] text-[var(--on-accent-weak)]" : ""}`}
             onClick={() => setSpread(2)}
           >
             2 pages

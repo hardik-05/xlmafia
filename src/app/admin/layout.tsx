@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export const metadata = { title: "Admin - XLRI Notes Portal" };
+export const metadata = { title: "Admin · XL Notes" };
 
 export default async function AdminLayout({
   children,
@@ -25,34 +25,40 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/dashboard?error=forbidden");
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/admin" className="font-semibold">
+    <div className="flex min-h-[100dvh] flex-col">
+      <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-4 py-3 sm:px-6">
+          <Link
+            href="/admin"
+            className="mr-3 flex items-center gap-2 text-[15px] font-bold tracking-tight"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent-weak)] text-[13px] font-extrabold text-[var(--on-accent-weak)]">
+              XL
+            </span>
             Admin
           </Link>
-          <nav className="flex gap-4 text-sm text-[var(--muted)]">
-            <Link href="/admin/subjects" className="hover:text-[var(--text)]">
-              Subjects
-            </Link>
-            <Link href="/admin/upload" className="hover:text-[var(--text)]">
-              Upload
-            </Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-4 text-sm text-[var(--muted)]">
-            <Link href="/dashboard" className="hover:text-[var(--text)]">
+          <Link href="/admin/subjects" className="nav-link">
+            Subjects
+          </Link>
+          <Link href="/admin/upload" className="nav-link">
+            Upload
+          </Link>
+          <div className="ml-auto flex items-center gap-1">
+            <Link href="/dashboard" className="nav-link">
               User view
             </Link>
-            <span className="hidden sm:inline">
-              {profile?.full_name || profile?.email}
+            <span className="hidden px-2 text-sm text-[var(--muted)] sm:inline">
+              {(profile?.email ?? "").split("@")[0]}
             </span>
-            <a href="/auth/signout" className="hover:text-[var(--text)]">
+            <a href="/auth/signout" className="nav-link">
               Sign out
             </a>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {children}
+      </main>
     </div>
   );
 }

@@ -213,7 +213,7 @@ function CommentComposer({
         <button
           type="submit"
           disabled={busy || !value.trim()}
-          className="rounded-lg bg-[var(--accent)] px-4 py-1.5 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-50"
+          className="btn btn-primary btn-sm"
         >
           {busy ? "Posting..." : submitLabel}
         </button>

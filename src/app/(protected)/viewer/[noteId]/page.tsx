@@ -51,11 +51,11 @@ export default async function ViewerPage({
       <div>
         <Link
           href={`/subjects/${note.subject_id}`}
-          className="text-xs text-[var(--muted)] hover:text-[var(--text)]"
+          className="text-xs font-medium text-[var(--muted)] hover:text-[var(--accent)]"
         >
-          &larr; {note.subjects?.name ?? "Subject"}
+          ← {note.subjects?.name ?? "Subject"}
         </Link>
-        <h1 className="mt-2 text-xl font-semibold">{note.title}</h1>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">{note.title}</h1>
       </div>
 
       <DocViewer

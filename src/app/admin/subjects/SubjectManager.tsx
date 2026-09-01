@@ -73,7 +73,7 @@ export default function SubjectManager({
         <button
           type="submit"
           disabled={busy || !name.trim() || !code.trim()}
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] disabled:opacity-50"
+          className="btn btn-primary"
         >
           {busy ? "Adding..." : "Add subject"}
         </button>

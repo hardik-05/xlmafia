@@ -4,39 +4,30 @@ import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
-function systemTheme(): Theme {
-  return typeof window !== "undefined" &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
 export default function ThemeToggle({ className = "" }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme | null>(null);
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    let saved: Theme | null = null;
     try {
-      const v = localStorage.getItem("theme");
-      if (v === "light" || v === "dark") saved = v;
+      setTheme(localStorage.getItem("theme") === "dark" ? "dark" : "light");
     } catch {
       /* ignore */
     }
-    setTheme(saved ?? systemTheme());
   }, []);
 
   function toggle() {
-    const next: Theme = (theme ?? systemTheme()) === "dark" ? "light" : "dark";
+    const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.dataset.theme = next;
     try {
-      localStorage.setItem("theme", next);
+      if (next === "dark") localStorage.setItem("theme", "dark");
+      else localStorage.removeItem("theme");
     } catch {
       /* ignore */
     }
   }
 
-  const isDark = (theme ?? "light") === "dark";
+  const isDark = theme === "dark";
 
   return (
     <button
@@ -44,7 +35,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Light mode" : "Dark mode"}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition hover:text-[var(--text)] ${className}`}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] transition hover:bg-[var(--nav-hover)] hover:text-[var(--accent)] ${className}`}
     >
       {isDark ? (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
