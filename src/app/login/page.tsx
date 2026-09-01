@@ -1,5 +1,7 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { ALLOWED_DOMAIN } from "@/lib/auth/domain";
+import { SUPPORT_MAILTO } from "@/lib/site";
 import LoginForm from "./LoginForm";
 
 export const metadata = { title: "Sign in - XLRI Notes Portal" };
@@ -30,6 +32,19 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-xs text-[var(--muted)]">
           Access is restricted and monitored. Material in this portal is for
           personal study only and may not be copied or redistributed.
+        </p>
+        <p className="mt-3 text-center text-xs text-[var(--muted)]">
+          <Link href="/" className="hover:text-[var(--text)]">
+            Home
+          </Link>
+          <span className="mx-2">·</span>
+          <Link href="/about" className="hover:text-[var(--text)]">
+            About
+          </Link>
+          <span className="mx-2">·</span>
+          <a href={SUPPORT_MAILTO} className="hover:text-[var(--text)]">
+            Support
+          </a>
         </p>
       </div>
     </main>

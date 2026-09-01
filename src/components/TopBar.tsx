@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_MAILTO } from "@/lib/site";
 
 export default function TopBar({
   displayName,
@@ -19,6 +20,12 @@ export default function TopBar({
               Admin
             </Link>
           )}
+          <a
+            href={SUPPORT_MAILTO}
+            className="hidden hover:text-[var(--text)] sm:inline"
+          >
+            Support
+          </a>
           <span className="hidden max-w-[16ch] truncate sm:inline">
             {displayName}
           </span>
