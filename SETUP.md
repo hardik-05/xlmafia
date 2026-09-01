@@ -116,3 +116,20 @@ Sign out / in; `/admin` is now reachable.
 - As admin: create a subject, batch-upload a PDF + `.md` + `.docx` + PNG.
 - As a normal user: `/admin` redirects away; open a note → canvas viewer, right-click
   and Ctrl+C/Ctrl+P/Ctrl+S do nothing; like it; post a comment and one reply.
+
+## 8. Troubleshooting
+
+**Magic-link email points at `http://localhost:3000/…`** — Supabase **Site URL** is still
+the default. Set it to the production URL and add `https://<domain>/**` to **Redirect
+URLs** (step 3). Request a fresh link afterwards; old links are single-use.
+
+**Every route returns HTTP 500** — the Vercel env vars aren't set (or the project wasn't
+redeployed after setting them). Middleware needs `NEXT_PUBLIC_SUPABASE_URL` /
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` on every request. See step 5.
+
+**Pushed commits show "Blocked" in Vercel** — Project → Settings → Git → turn off
+**Require Verified Commits** (commits here aren't GPG-signed), then redeploy the blocked
+commit specifically (not an older one).
+
+**`UPDATE 0` when promoting the first admin** — you haven't completed a sign-in yet, so
+no `profiles` row exists. Log in once, then re-run the `update`.
