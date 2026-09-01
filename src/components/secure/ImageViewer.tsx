@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4;
 
-/** Plain image render with zoom. Bytes come from the auth-gated API endpoint. */
+/** Legacy path: notes stored as raw images (new image uploads become PDFs). */
 export default function ImageViewer({ src }: { src: string }) {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [url, setUrl] = useState<string | null>(null);
@@ -35,48 +35,47 @@ export default function ImageViewer({ src }: { src: string }) {
     };
   }, [src]);
 
-  const btn =
-    "rounded border border-[var(--border)] px-2.5 py-1 text-sm hover:bg-[var(--surface-2)]";
-
-  if (state === "error") {
-    return (
-      <p className="rounded-lg border border-[var(--danger)]/40 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
-        This image could not be displayed.
-      </p>
-    );
-  }
-
   return (
-    <div>
-      <div className="mb-3 flex items-center gap-2">
+    <div className="viewer-frame">
+      <div className="viewer-toolbar">
+        <span className="text-[13px] text-[var(--muted)]">Scan</span>
+        <span className="mx-1 h-4 w-px bg-[var(--border)]" />
         <button
-          className={btn}
+          className="viewer-btn"
           onClick={() => setZoom((z) => Math.max(MIN_ZOOM, +(z - 0.25).toFixed(2)))}
         >
           −
         </button>
-        <button className={btn} onClick={() => setZoom(1)} title="Reset zoom">
+        <button
+          className="viewer-btn min-w-[4ch]"
+          onClick={() => setZoom(1)}
+          title="Reset zoom"
+        >
           {Math.round(zoom * 100)}%
         </button>
         <button
-          className={btn}
+          className="viewer-btn"
           onClick={() => setZoom((z) => Math.min(MAX_ZOOM, +(z + 0.25).toFixed(2)))}
         >
           +
         </button>
       </div>
-      <div className="max-h-[82vh] overflow-auto rounded-lg border border-[var(--border)] bg-[var(--doc-bg)] p-3">
-        {state === "loading" || !url ? (
-          <div className="flex h-64 items-center justify-center text-sm text-[var(--muted)]">
+      <div className="viewer-body" tabIndex={0}>
+        {state === "error" ? (
+          <p className="p-8 text-center text-sm text-[var(--danger)]">
+            This image could not be displayed.
+          </p>
+        ) : state === "loading" || !url ? (
+          <div className="flex h-full items-center justify-center p-8 text-sm text-[var(--muted)]">
             Loading image…
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex justify-center p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={url}
               alt="Scanned note"
-              style={{ width: `${zoom * 100}%`, maxWidth: zoom <= 1 ? 1100 : "none" }}
+              style={{ width: `${zoom * 100}%`, maxWidth: zoom <= 1 ? 1000 : "none" }}
               className="h-auto shadow-lg"
             />
           </div>

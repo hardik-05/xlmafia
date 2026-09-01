@@ -42,6 +42,27 @@ async function prerenderHtml(file: File, kind: FileKind): Promise<string | undef
   return undefined;
 }
 
+/**
+ * Wrap a scanned image (PNG/JPG) into a single-page PDF so it flows through the
+ * same PDF viewer as everything else. The original image bytes are embedded
+ * losslessly. Returns null on failure (caller keeps the raw image).
+ */
+async function imageToPdf(file: File): Promise<Uint8Array | null> {
+  try {
+    const { PDFDocument } = await import("pdf-lib");
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const pdf = await PDFDocument.create();
+    const isPng =
+      file.type === "image/png" || file.name.toLowerCase().endsWith(".png");
+    const img = isPng ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
+    const page = pdf.addPage([img.width, img.height]);
+    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+    return await pdf.save();
+  } catch {
+    return null;
+  }
+}
+
 type Status = "pending" | "uploading" | "done" | "error";
 
 interface Item {
@@ -139,14 +160,30 @@ export default function UploadManager({
 
   async function uploadOne(supabase: ReturnType<typeof createSupabaseBrowserClient>, it: Item) {
     patch(it.key, { status: "uploading", message: undefined });
-    const path = `${subjectId}/${crypto.randomUUID()}.${extOf(it.file.name)}`;
+
+    // Images become a single-page PDF so every note opens in the PDF viewer.
+    let kind: FileKind = it.kind;
+    let ext = extOf(it.file.name);
+    let body: Blob | Uint8Array = it.file;
+    let contentType = it.file.type || CONTENT_TYPE[it.kind];
+    let size = it.file.size;
+
+    if (it.kind === "image") {
+      const pdfBytes = await imageToPdf(it.file);
+      if (pdfBytes) {
+        kind = "pdf";
+        ext = "pdf";
+        body = pdfBytes;
+        contentType = "application/pdf";
+        size = pdfBytes.byteLength;
+      }
+    }
+
+    const path = `${subjectId}/${crypto.randomUUID()}.${ext}`;
 
     const { error: upErr } = await supabase.storage
       .from("notes")
-      .upload(path, it.file, {
-        contentType: it.file.type || CONTENT_TYPE[it.kind],
-        upsert: false,
-      });
+      .upload(path, body, { contentType, upsert: false });
     if (upErr) {
       patch(it.key, { status: "error", message: `Storage: ${upErr.message}` });
       return;
@@ -165,9 +202,9 @@ export default function UploadManager({
         docDate: it.docDate || "",
         sessionTag: it.sessionTag || "",
         storagePath: path,
-        fileKind: it.kind,
-        mimeType: it.file.type || CONTENT_TYPE[it.kind],
-        fileSize: it.file.size,
+        fileKind: kind,
+        mimeType: contentType,
+        fileSize: size,
         ...(renderedHtml ? { renderedHtml } : {}),
       }),
     });
@@ -244,7 +281,11 @@ export default function UploadManager({
             : "Drag & drop files here, or click to choose"}
         </p>
         <p className="mt-1 text-xs text-[var(--muted)]">
-          PDF / DOCX / MD / PNG / JPG - up to 50 MB each
+          PDF / DOCX / MD / PNG / JPG · up to 50 MB each
+        </p>
+        <p className="mt-1 text-[11px] text-[var(--muted)]">
+          Tip: for the cleanest reading experience, export Word docs to PDF
+          before uploading. Images are converted to PDF automatically.
         </p>
       </div>
 

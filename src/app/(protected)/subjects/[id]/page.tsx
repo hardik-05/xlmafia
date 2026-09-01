@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
 
@@ -30,12 +31,7 @@ export default async function SubjectPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href="/dashboard"
-          className="text-xs font-medium text-[var(--muted)] hover:text-[var(--accent)]"
-        >
-          ← All subjects
-        </Link>
+        <BackLink href="/dashboard" label="All subjects" />
         <div className="mt-3 flex flex-wrap items-baseline gap-3">
           <h1 className="text-2xl font-bold tracking-tight">{subject.name}</h1>
           <span className="rounded-md bg-[var(--accent-weak)] px-2 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-[var(--on-accent-weak)]">

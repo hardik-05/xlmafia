@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { FileKind } from "@/lib/types";
 import DocViewer from "@/components/secure/DocViewer";
 import CommentThread from "@/components/CommentThread";
+import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
 
@@ -49,12 +49,10 @@ export default async function ViewerPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link
+        <BackLink
           href={`/subjects/${note.subject_id}`}
-          className="text-xs font-medium text-[var(--muted)] hover:text-[var(--accent)]"
-        >
-          ← {note.subjects?.name ?? "Subject"}
-        </Link>
+          label={`Back to ${note.subjects?.name ?? "subject"}`}
+        />
         <h1 className="mt-3 text-2xl font-bold tracking-tight">{note.title}</h1>
       </div>
 
