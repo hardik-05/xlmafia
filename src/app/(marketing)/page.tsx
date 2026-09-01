@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PUBLIC_SUPPORT_MAILTO, SITE_NAME } from "@/lib/site";
+import HomePet from "@/components/HomePet";
 
 export const dynamic = "force-dynamic";
 
@@ -21,18 +22,30 @@ export default async function LandingPage() {
         <div className="hero-blob b1" />
         <div className="hero-blob b2" />
         <div className="hero-blob b3" />
-        <div className="hero-card c1" style={{ "--r": "-8deg" } as CSSProperties}>
+        <div
+          className="hero-card c1"
+          data-pet-perch
+          style={{ "--r": "-8deg" } as CSSProperties}
+        >
           <div className="ln accent" />
           <div className="ln" />
           <div className="ln" style={{ width: "80%" }} />
           <div className="ln" style={{ width: "60%" }} />
         </div>
-        <div className="hero-card c2" style={{ "--r": "7deg" } as CSSProperties}>
+        <div
+          className="hero-card c2"
+          data-pet-perch
+          style={{ "--r": "7deg" } as CSSProperties}
+        >
           <div className="ln accent" />
           <div className="ln" />
           <div className="ln" style={{ width: "70%" }} />
         </div>
-        <div className="hero-card c3" style={{ "--r": "-5deg" } as CSSProperties}>
+        <div
+          className="hero-card c3"
+          data-pet-perch
+          style={{ "--r": "-5deg" } as CSSProperties}
+        >
           <div className="ln accent" />
           <div className="ln" style={{ width: "85%" }} />
           <div className="ln" style={{ width: "55%" }} />
@@ -40,11 +53,17 @@ export default async function LandingPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-2xl text-center">
-        <span className="inline-block rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3 py-1 text-xs font-medium text-[var(--muted)] backdrop-blur">
+        <span
+          data-pet-perch
+          className="inline-block rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3 py-1 text-xs font-medium text-[var(--muted)] backdrop-blur"
+        >
           {SITE_NAME} · internal
         </span>
 
-        <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-[3.25rem]">
+        <h1
+          data-pet-perch
+          className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-[3.25rem]"
+        >
           Study notes for the batch,
           <br />
           <span className="bg-gradient-to-r from-[var(--accent)] to-[#a78bfa] bg-clip-text text-transparent">
@@ -60,14 +79,20 @@ export default async function LandingPage() {
         </p>
 
         <div className="mt-8 flex items-center justify-center gap-3">
-          <Link href={primaryHref} className="btn btn-primary">
+          <Link href={primaryHref} data-pet-perch className="btn btn-primary">
             {primaryLabel}
           </Link>
-          <a href={PUBLIC_SUPPORT_MAILTO} className="btn btn-ghost">
+          <a
+            href={PUBLIC_SUPPORT_MAILTO}
+            data-pet-perch
+            className="btn btn-ghost"
+          >
             Contact support
           </a>
         </div>
       </div>
+
+      <HomePet />
     </main>
   );
 }

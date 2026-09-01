@@ -348,6 +348,108 @@ input[type="search"]::-webkit-search-results-decoration {
 }
 
 /* ---------------------------------------------------------------------------
+   Home-page pet (see HomePet.tsx). One fixed element; poses driven by
+   data-pose / data-face on .pet-root.
+   --------------------------------------------------------------------------- */
+.pet-root {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 45;
+  width: 60px;
+  height: 50px;
+  pointer-events: none;
+  will-change: transform;
+}
+.pet {
+  position: relative;
+  width: 60px;
+  height: 50px;
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: 50% 100%;
+}
+.pet-face { transform-origin: 50% 50%; }
+.pet svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.pet-root[data-face="left"] .pet-face { transform: scaleX(-1); }
+.pet-shadow { fill: rgba(0, 0, 0, 0.16); }
+.pet-tail { transform-origin: 13px 25px; }
+.pet-ear { transform-origin: 42px 9px; }
+.pet-eye { transform-origin: 45px 15px; }
+.pet-legF { transform-origin: 41px 33px; }
+.pet-legB { transform-origin: 20px 33px; }
+.pet-body { transform-origin: 29px 34px; }
+.pet-tongue { opacity: 0; transform-origin: 52px 23px; }
+
+.pet-x {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.pet-root:hover .pet-x { opacity: 1; }
+
+/* idle */
+.pet-root[data-pose="idle"] .pet-body { animation: pet-breathe 3.2s ease-in-out infinite; }
+.pet-root[data-pose="idle"] .pet-tail { animation: pet-wag 1.1s ease-in-out infinite; }
+.pet-root[data-pose="idle"] .pet-ear { animation: pet-eartwitch 5s infinite; }
+.pet-root[data-pose="idle"] .pet-eye,
+.pet-root[data-pose="walk"] .pet-eye { animation: pet-blink 4.6s infinite; }
+
+/* walk */
+.pet-root[data-pose="walk"] .pet { animation: pet-bob 0.32s ease-in-out infinite; }
+.pet-root[data-pose="walk"] .pet-legF { animation: pet-legf 0.32s linear infinite; }
+.pet-root[data-pose="walk"] .pet-legB { animation: pet-legb 0.32s linear infinite; }
+.pet-root[data-pose="walk"] .pet-tail { animation: pet-wag 0.3s ease-in-out infinite; }
+.pet-root[data-pose="walk"] .pet-ear { animation: pet-flap 0.32s ease-in-out infinite; }
+
+/* hop */
+.pet-root[data-pose="hop"] .pet { animation: pet-hop 0.64s ease-in-out; }
+.pet-root[data-pose="hop"] .pet-ear { transform: rotate(-22deg) translateY(-2px); }
+.pet-root[data-pose="hop"] .pet-legF,
+.pet-root[data-pose="hop"] .pet-legB { transform: translateY(3px); }
+
+/* sit + faces */
+.pet-root[data-pose="sit"] .pet { transform: translateY(5px) scaleY(0.9); }
+.pet-root[data-pose="sit"] .pet-legB { transform: translateY(4px) scaleY(0.55); }
+.pet-root[data-pose="sit"] .pet-tail { animation: pet-wag 0.6s ease-in-out infinite; }
+.pet-root[data-pose="sit"] .pet-eye { transform: scaleY(0.3); }
+.pet-root[data-pose="sit"] .pet-tongue { animation: pet-pant 0.5s ease-in-out infinite; }
+
+@keyframes pet-pant { 0%, 100% { opacity: 1; transform: scaleY(0.7); } 50% { opacity: 1; transform: scaleY(1); } }
+@keyframes pet-breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.05); } }
+@keyframes pet-wag { 0%, 100% { transform: rotate(-17deg); } 50% { transform: rotate(17deg); } }
+@keyframes pet-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes pet-eartwitch { 0%, 88%, 100% { transform: rotate(0); } 92% { transform: rotate(-14deg); } }
+@keyframes pet-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes pet-legf { 0% { transform: rotate(15deg); } 50% { transform: rotate(-15deg); } 100% { transform: rotate(15deg); } }
+@keyframes pet-legb { 0% { transform: rotate(-15deg); } 50% { transform: rotate(15deg); } 100% { transform: rotate(-15deg); } }
+@keyframes pet-flap { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-10deg); } }
+@keyframes pet-hop {
+  0% { transform: translateY(0) scaleY(1); }
+  18% { transform: translateY(2px) scaleY(0.82); }
+  45% { transform: translateY(-6px) scaleY(1.12); }
+  75% { transform: translateY(0) scaleY(0.94); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-root { display: none; }
+}
+
+/* ---------------------------------------------------------------------------
    react-pdf layers - pages stay white regardless of theme.
    --------------------------------------------------------------------------- */
 .react-pdf__Page {

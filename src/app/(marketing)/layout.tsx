@@ -9,7 +9,10 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden">
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]/85 backdrop-blur-xl">
+      <header
+        data-pet-perch
+        className="border-b border-[var(--border)] bg-[var(--surface)]/85 backdrop-blur-xl"
+      >
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
           <Link
             href="/"
