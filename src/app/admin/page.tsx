@@ -52,7 +52,7 @@ export default async function AdminHome() {
           <Link
             key={card.label}
             href={card.href}
-            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)]"
+            className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent-weak-hover)] hover:bg-[var(--nav-hover)]"
           >
             <div className="text-3xl font-semibold">{card.value}</div>
             <div className="mt-1 text-sm text-[var(--muted)]">{card.label}</div>
@@ -89,7 +89,7 @@ export default async function AdminHome() {
               <Link
                 key={s.id}
                 href={`/admin/upload?subject=${s.id}`}
-                className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)] hover:bg-[var(--surface-2)]"
+                className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent-weak-hover)] hover:bg-[var(--nav-hover)]"
               >
                 <span className="font-mono text-xs uppercase tracking-wide text-[var(--accent)]">
                   {s.code}

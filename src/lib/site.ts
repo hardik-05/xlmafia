@@ -6,7 +6,14 @@ export const PUBLIC_SUPPORT_MAILTO = `mailto:${PUBLIC_SUPPORT_EMAIL}?subject=${e
   "XL Notes - Support",
 )}`;
 
-/** Full support routing - only shown to signed-in users. */
+const DOMAIN = "astra.xlri.ac.in";
+
+/** mailto: for a person's institute handle (handle only; email never displayed). */
+export function handleMailto(handle: string, subject = "XL Notes"): string {
+  return `mailto:${handle}@${DOMAIN}?subject=${encodeURIComponent(subject)}`;
+}
+
+/** Support routing - only shown to signed-in users; labels only, no addresses. */
 export interface SupportContact {
   email: string;
   label: string;
@@ -17,12 +24,18 @@ export const SUPPORT_CONTACTS: SupportContact[] = [
   { email: "work.ai.hardik@gmail.com", label: "Suggestions" },
 ];
 
-export interface Contributor {
+export interface Person {
   name: string;
   role: string;
   handle: string;
 }
-export const CONTRIBUTORS: Contributor[] = [
+
+export const CRS: Person[] = [
+  { name: "Divisha", role: "Class representative", handle: "xof26015b" },
+  { name: "Aditya", role: "Class representative", handle: "xof26001" },
+];
+
+export const CONTRIBUTORS: Person[] = [
   { name: "Satvik", role: "Notes & curation", handle: "xof26036" },
   { name: "Hardik", role: "Design & development", handle: "xof26019" },
 ];

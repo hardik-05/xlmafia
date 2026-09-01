@@ -1,14 +1,44 @@
 import Image from "next/image";
 import {
+  CRS,
   CONTRIBUTORS,
   SUPPORT_CONTACTS,
   BATCH_LABEL,
   BATCH_MOTTO,
   BATCH_PHOTO,
   SITE_NAME,
+  handleMailto,
+  type Person,
 } from "@/lib/site";
 
 export const metadata = { title: "About · XL Notes" };
+
+function PeopleGrid({ people }: { people: Person[] }) {
+  return (
+    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      {people.map((p) => (
+        <div
+          key={p.handle}
+          className="flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent-weak-hover)] hover:bg-[var(--nav-hover)]"
+        >
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--accent-weak)] text-sm font-bold text-[var(--on-accent-weak)]">
+            {p.name.slice(0, 1).toUpperCase()}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate font-medium">{p.name}</span>
+            <span className="block text-sm text-[var(--muted)]">{p.role}</span>
+            <a
+              href={handleMailto(p.handle, `XL Notes - ${p.name}`)}
+              className="mt-0.5 inline-block text-xs font-medium text-[var(--accent)] hover:underline"
+            >
+              {p.handle}
+            </a>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function AboutPage() {
   return (
@@ -36,48 +66,34 @@ export default function AboutPage() {
         </figcaption>
       </figure>
 
-      <h2 className="mt-12 text-xl font-semibold">Contributors</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {CONTRIBUTORS.map((c) => (
-          <div
-            key={c.handle}
-            className="flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5"
-          >
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--accent-weak)] text-sm font-bold text-[var(--on-accent-weak)]">
-              {c.name.slice(0, 1).toUpperCase()}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate font-medium">{c.name}</span>
-              <span className="block text-sm text-[var(--muted)]">{c.role}</span>
-              <span className="block text-xs text-[var(--muted)]">
-                {c.handle}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
+      <h2 className="mt-12 text-xl font-semibold">CR</h2>
+      <PeopleGrid people={CRS} />
 
-      <h2 id="support" className="mt-12 scroll-mt-24 text-xl font-semibold">
-        Help &amp; support
-      </h2>
-      <ul className="mt-4 space-y-3">
-        {SUPPORT_CONTACTS.map((s) => (
-          <li
-            key={s.email}
-            className="flex flex-col gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <span className="text-sm text-[var(--muted)]">{s.label}</span>
+      <h2 className="mt-12 text-xl font-semibold">Contributors</h2>
+      <PeopleGrid people={CONTRIBUTORS} />
+
+      <h2
+        id="support"
+        className="mt-12 flex flex-wrap items-center gap-x-4 gap-y-3 scroll-mt-24"
+      >
+        <span className="text-xl font-semibold">Help &amp; support</span>
+        <div className="flex flex-wrap gap-2">
+          {SUPPORT_CONTACTS.map((s) => (
             <a
+              key={s.label}
               href={`mailto:${s.email}?subject=${encodeURIComponent(
                 `XL Notes - ${s.label}`,
               )}`}
-              className="text-sm font-medium text-[var(--accent)] hover:underline"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm font-medium transition hover:border-[var(--accent-weak-hover)] hover:bg-[var(--nav-hover)]"
             >
-              {s.email}
+              {s.label}
             </a>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </h2>
+      <p className="mt-3 text-sm text-[var(--muted)]">
+        Tap a topic to email the right person.
+      </p>
     </div>
   );
 }

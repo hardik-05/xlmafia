@@ -10,9 +10,8 @@ const SUPABASE_COOKIE_RE = /^sb-.*-auth-token/;
 
 async function handle(request: NextRequest) {
   const { origin } = new URL(request.url);
-  let response = NextResponse.redirect(`${origin}/login?reason=signed_out`, {
-    status: 303,
-  });
+  // After sign-out land on the public home page, not the sign-in screen.
+  let response = NextResponse.redirect(`${origin}/`, { status: 303 });
 
   const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {

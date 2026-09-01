@@ -56,7 +56,7 @@ export default function SubjectGrid({
             <Link
               key={s.id}
               href={`/subjects/${s.id}`}
-              className="card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent-weak-hover)] hover:shadow-[var(--shadow-md)]"
+              className="card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent-weak-hover)] hover:bg-[var(--nav-hover)] hover:shadow-[var(--shadow-md)]"
             >
               <span className="w-fit rounded-md bg-[var(--accent-weak)] px-2 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-[var(--on-accent-weak)]">
                 {s.code}
