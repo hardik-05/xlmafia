@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { email, stay } = parsed.data;
+  const { email, stay, next } = parsed.data;
 
   if (!isAllowedEmail(email)) {
     return NextResponse.json(
@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const redirectTo = `${resolveOrigin(request)}/auth/callback?stay=${
-    stay ? "1" : "0"
-  }`;
+  const redirectTo =
+    `${resolveOrigin(request)}/auth/callback?stay=${stay ? "1" : "0"}` +
+    (next ? `&next=${encodeURIComponent(next)}` : "");
 
   const { error } = await supabase.auth.signInWithOtp({
     email,

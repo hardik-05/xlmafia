@@ -32,6 +32,12 @@ export const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MB, matches the storage bu
 export const otpRequestSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   stay: z.boolean().optional().default(false),
+  // Post-login destination. Must be an app-local path (no protocol / no "//").
+  next: z
+    .string()
+    .regex(/^\/(?!\/)[A-Za-z0-9/_\-?=&.%]*$/)
+    .max(512)
+    .optional(),
 });
 
 export const subjectSchema = z.object({

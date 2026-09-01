@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const stay = searchParams.get("stay") === "1";
   const nextParam = searchParams.get("next");
   const next =
-    nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
+    nextParam && /^\/(?!\/)/.test(nextParam) ? nextParam : "/dashboard";
 
   // The response we will ultimately return; the Supabase client writes auth
   // cookies onto it directly.

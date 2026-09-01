@@ -16,6 +16,9 @@ const REASONS: Record<string, string> = {
 export default function LoginForm({ allowedDomain }: { allowedDomain: string }) {
   const params = useSearchParams();
   const reason = params.get("reason");
+  const nextParam = params.get("next");
+  const next =
+    nextParam && /^\/(?!\/)/.test(nextParam) ? nextParam : undefined;
 
   const [email, setEmail] = useState("");
   const [stay, setStay] = useState(false);
@@ -43,7 +46,11 @@ export default function LoginForm({ allowedDomain }: { allowedDomain: string }) 
       const res = await fetch("/api/otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), stay }),
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          stay,
+          ...(next ? { next } : {}),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

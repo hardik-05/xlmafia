@@ -23,7 +23,7 @@ const MOODS = ["calm", "look", "sniff", "scratch", "calm"] as const;
  * is hidden, off for reduced-motion and < 768px.
  */
 export default function HomePet() {
-  const [mounted, setMounted] = useState(false);
+  const [state, setState] = useState<"loading" | "on" | "off">("loading");
   const rootRef = useRef<HTMLDivElement | null>(null);
   const hopRef = useRef<() => void>(() => {});
 
@@ -31,17 +31,18 @@ export default function HomePet() {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (window.innerWidth < 768) return;
+    let off = false;
     try {
-      if (localStorage.getItem("pet:off") === "1") return;
+      off = localStorage.getItem("pet:off") === "1";
     } catch {
       /* ignore */
     }
-    setMounted(true);
+    setState(off ? "off" : "on");
   }, []);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!mounted || !root) return;
+    if (state !== "on" || !root) return;
 
     const W = () => window.innerWidth;
     const H = () => window.innerHeight;
@@ -207,7 +208,7 @@ export default function HomePet() {
       if (rt) clearTimeout(rt);
       rt = window.setTimeout(() => {
         if (window.innerWidth < 768) {
-          setMounted(false);
+          setState("loading"); // hide entirely on small screens
           return;
         }
         pos.x = clamp(pos.x, 4, W() - PET_W - 4);
@@ -226,7 +227,7 @@ export default function HomePet() {
       window.removeEventListener("resize", onResize);
       if (rt) clearTimeout(rt);
     };
-  }, [mounted]);
+  }, [state]);
 
   const dismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -235,10 +236,38 @@ export default function HomePet() {
     } catch {
       /* ignore */
     }
-    setMounted(false);
+    setState("off");
   };
 
-  if (!mounted) return null;
+  const callPup = () => {
+    try {
+      localStorage.removeItem("pet:off");
+    } catch {
+      /* ignore */
+    }
+    setState("on");
+  };
+
+  if (state === "loading") return null;
+
+  if (state === "off") {
+    return (
+      <button
+        type="button"
+        onClick={callPup}
+        className="btn btn-ghost btn-sm fixed bottom-4 right-4 z-40 gap-1.5 shadow-[var(--shadow-md)]"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <circle cx="8" cy="9" r="2.2" />
+          <circle cx="16" cy="9" r="2.2" />
+          <circle cx="5.5" cy="13.5" r="1.9" />
+          <circle cx="18.5" cy="13.5" r="1.9" />
+          <path d="M12 12.5c2.6 0 4.7 1.9 4.7 4.2 0 1.7-1.6 2.8-4.7 2.8s-4.7-1.1-4.7-2.8c0-2.3 2.1-4.2 4.7-4.2z" />
+        </svg>
+        Call Pup
+      </button>
+    );
+  }
 
   return (
     <div
