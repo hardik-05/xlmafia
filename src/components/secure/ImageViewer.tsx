@@ -2,50 +2,41 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/**
- * Renders a scanned image as a CSS background on a <div>, with a transparent
- * overlay on top so it cannot be dragged to the desktop or saved via the
- * context menu. No <img> element is placed in the DOM.
- */
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 4;
+
+/** Plain image render with zoom. Bytes come from the auth-gated API endpoint. */
 export default function ImageViewer({ src }: { src: string }) {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  const [ratio, setRatio] = useState(1.4); // height / width
+  const [url, setUrl] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
-  const blobUrlRef = useRef<string | null>(null);
-  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  const blobRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(src, { cache: "no-store" });
+        const res = await fetch(src, { cache: "force-cache" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
         if (cancelled) return;
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        setBgUrl(url);
-
-        const probe = new Image();
-        probe.onload = () => {
-          if (!cancelled && probe.naturalWidth > 0) {
-            setRatio(probe.naturalHeight / probe.naturalWidth);
-          }
-          if (!cancelled) setState("ready");
-        };
-        probe.onerror = () => !cancelled && setState("error");
-        probe.src = url;
+        const u = URL.createObjectURL(blob);
+        blobRef.current = u;
+        setUrl(u);
+        setState("ready");
       } catch {
         if (!cancelled) setState("error");
       }
     })();
-
     return () => {
       cancelled = true;
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
+      if (blobRef.current) URL.revokeObjectURL(blobRef.current);
+      blobRef.current = null;
     };
   }, [src]);
+
+  const btn =
+    "rounded border border-[var(--border)] px-2.5 py-1 text-sm hover:bg-[var(--surface-2)]";
 
   if (state === "error") {
     return (
@@ -55,55 +46,41 @@ export default function ImageViewer({ src }: { src: string }) {
     );
   }
 
-  if (state === "loading" || !bgUrl) {
-    return (
-      <div className="flex h-64 items-center justify-center text-sm text-[var(--muted)]">
-        Loading image...
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 text-sm">
+      <div className="mb-3 flex items-center gap-2">
         <button
-          type="button"
-          onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))}
-          className="rounded border border-[var(--border)] px-3 py-1"
+          className={btn}
+          onClick={() => setZoom((z) => Math.max(MIN_ZOOM, +(z - 0.25).toFixed(2)))}
         >
-          -
+          −
         </button>
-        <span className="tabular-nums text-[var(--muted)]">
+        <button className={btn} onClick={() => setZoom(1)} title="Reset zoom">
           {Math.round(zoom * 100)}%
-        </span>
+        </button>
         <button
-          type="button"
-          onClick={() => setZoom((z) => Math.min(3, +(z + 0.2).toFixed(2)))}
-          className="rounded border border-[var(--border)] px-3 py-1"
+          className={btn}
+          onClick={() => setZoom((z) => Math.min(MAX_ZOOM, +(z + 0.25).toFixed(2)))}
         >
           +
         </button>
       </div>
-
-      <div className="max-h-[80vh] overflow-auto rounded-lg border border-[var(--border)] bg-[#333] p-2">
-        <div
-          className="relative mx-auto"
-          style={{ width: `${zoom * 100}%`, maxWidth: zoom <= 1 ? "900px" : "none" }}
-        >
-          <div
-            role="img"
-            aria-label="Scanned note"
-            style={{
-              backgroundImage: `url("${bgUrl}")`,
-              backgroundSize: "contain",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "top center",
-              paddingBottom: `${ratio * 100}%`,
-            }}
-          />
-          {/* Transparent shield against drag-to-save / long-press menus. */}
-          <div className="absolute inset-0" aria-hidden="true" />
-        </div>
+      <div className="max-h-[82vh] overflow-auto rounded-lg border border-[var(--border)] bg-[var(--doc-bg)] p-3">
+        {state === "loading" || !url ? (
+          <div className="flex h-64 items-center justify-center text-sm text-[var(--muted)]">
+            Loading image…
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt="Scanned note"
+              style={{ width: `${zoom * 100}%`, maxWidth: zoom <= 1 ? 1100 : "none" }}
+              className="h-auto shadow-lg"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

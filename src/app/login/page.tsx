@@ -2,13 +2,17 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { ALLOWED_DOMAIN } from "@/lib/auth/domain";
 import { SUPPORT_MAILTO } from "@/lib/site";
+import ThemeToggle from "@/components/ThemeToggle";
 import LoginForm from "./LoginForm";
 
 export const metadata = { title: "Sign in - XLRI Notes Portal" };
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-12">
+    <main className="relative flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">

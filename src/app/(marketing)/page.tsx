@@ -11,8 +11,8 @@ const FEATURES = [
     body: "Every note lives under a subject with a code. Search filters subjects by name or code as you type.",
   },
   {
-    title: "Protected viewer",
-    body: "PDFs render to canvas, scans render without a draggable image, and copy, right-click, download and print are blocked.",
+    title: "In-app reader",
+    body: "PDFs, Word docs, Markdown and scans open in a fast reader with zoom and a one- or two-page view. No downloads.",
   },
   {
     title: "Discuss",
@@ -43,7 +43,7 @@ export default async function LandingPage() {
           A private home for XLRI study material.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-[var(--muted)]">
-          Browse subject notes, read them in a copy-protected viewer and ask
+          Browse subject notes, read them in a fast in-app viewer and ask
           questions in the comments. Sign-in is limited to your institute email.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SiteFooter from "@/components/SiteFooter";
+import ThemeToggle from "@/components/ThemeToggle";
 import { SITE_NAME, SUPPORT_MAILTO } from "@/lib/site";
 
 export default function MarketingLayout({
@@ -27,6 +28,7 @@ export default function MarketingLayout({
             >
               Sign in
             </Link>
+            <ThemeToggle />
           </nav>
         </div>
       </header>

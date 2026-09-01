@@ -30,8 +30,8 @@ export default function AboutPage() {
           The XLRI Notes Portal is a place for our batch to share study material.
           An administrator uploads notes &mdash; PDFs, Markdown, Word documents
           and scanned images &mdash; organised by subject. You browse and search
-          subjects, read notes in a viewer that blocks copying, downloading and
-          printing, and discuss in text-only threads.
+          subjects, read notes in a fast in-app viewer (zoom, one- or two-page
+          view; downloads are disabled) and discuss in text-only threads.
         </p>
         <p>
           Access is restricted to{" "}

@@ -44,8 +44,15 @@ function clearAuthCookies(request: NextRequest, res: NextResponse) {
 }
 
 export async function middleware(request: NextRequest) {
-  const { response, supabase, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
+
+  // Only protected routes and the login page need a session check. Everything
+  // else skips the Supabase round-trip entirely (big latency win).
+  if (!isProtected(pathname) && pathname !== "/login") {
+    return NextResponse.next();
+  }
+
+  const { response, supabase, user } = await updateSession(request);
 
   // Already authenticated and hitting the login page → go to the dashboard.
   if (user && pathname === "/login") {
@@ -86,8 +93,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except Next internals and static assets.
+  // Skip Next internals, API routes (they authenticate themselves), the auth
+  // callback/signout handlers, and static assets.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|pdf.worker.min.mjs|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!api|auth|_next/static|_next/image|favicon.ico|pdf.worker.min.mjs|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mjs)$).*)",
   ],
 };

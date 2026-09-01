@@ -31,7 +31,7 @@ export default function DocxViewer({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(src, { cache: "no-store" });
+        const res = await fetch(src, { cache: "force-cache" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const arrayBuffer = await res.arrayBuffer();
         const mammoth = await import("mammoth/mammoth.browser");

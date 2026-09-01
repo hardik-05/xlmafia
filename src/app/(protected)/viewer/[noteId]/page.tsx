@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { FileKind } from "@/lib/types";
-import SecureDocViewer from "@/components/secure/SecureDocViewer";
+import DocViewer from "@/components/secure/DocViewer";
 import CommentThread from "@/components/CommentThread";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +58,7 @@ export default async function ViewerPage({
         <h1 className="mt-2 text-xl font-semibold">{note.title}</h1>
       </div>
 
-      <SecureDocViewer
+      <DocViewer
         noteId={note.id}
         fileKind={note.file_kind}
         renderedHtml={note.rendered_html}

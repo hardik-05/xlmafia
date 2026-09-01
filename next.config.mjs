@@ -11,17 +11,6 @@ const nextConfig = {
     config.resolve.alias.canvas = false;
     return config;
   },
-  async headers() {
-    return [
-      {
-        // Never let a proxy/browser cache rendered document bytes.
-        source: "/api/notes/:path*",
-        headers: [
-          { key: "Cache-Control", value: "no-store, max-age=0, must-revalidate" },
-        ],
-      },
-    ];
-  },
 };
 
 export default nextConfig;

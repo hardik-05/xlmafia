@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SUPPORT_MAILTO } from "@/lib/site";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function TopBar({
   displayName,
@@ -32,6 +33,7 @@ export default function TopBar({
           <a href="/auth/signout" className="hover:text-[var(--text)]">
             Sign out
           </a>
+          <ThemeToggle />
         </div>
       </div>
     </header>

@@ -15,7 +15,8 @@ const CONTENT_TYPE: Record<FileKind, string> = {
 /**
  * GET /api/notes/[id]/file
  * Streams the private document bytes to a signed-in viewer. The raw storage
- * URL is never exposed. Response is inline, non-cacheable, nosniff.
+ * URL is never exposed. Served inline (no download prompt) and cached in the
+ * viewer's browser only, so re-opening a note is instant.
  */
 export const GET = withErrors(
   async (_req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
@@ -52,11 +53,10 @@ export const GET = withErrors(
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": "inline",
-        "Cache-Control": "no-store, max-age=0, must-revalidate",
+        // Per-viewer browser cache; not shared caches / CDN.
+        "Cache-Control": "private, max-age=3600, stale-while-revalidate=86400",
         "X-Content-Type-Options": "nosniff",
         "Referrer-Policy": "no-referrer",
-        // Not a download target for other origins.
-        "Access-Control-Allow-Origin": "null",
       },
     });
   },
