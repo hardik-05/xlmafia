@@ -3,12 +3,26 @@ import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
 import { isAllowedEmail, ALLOWED_DOMAIN } from "@/lib/auth/domain";
 import { otpRequestSchema } from "@/lib/validation";
+import type { CookieToSet } from "@/lib/supabase/cookies";
 
 export const dynamic = "force-dynamic";
 
+/** Resolve this deployment's own origin without relying on a build-time env var. */
+function resolveOrigin(request: NextRequest): string {
+  const hdr = request.headers.get("origin");
+  if (hdr && /^https?:\/\//.test(hdr)) return hdr.replace(/\/$/, "");
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return env.siteUrl;
+  }
+}
+
 /**
  * Sends a Magic Link ONLY when the email is in the allowed domain.
- * The link comes back to /auth/callback carrying `stay` and `next`.
+ * The link returns to /auth/callback. The PKCE code verifier that
+ * signInWithOtp generates is written back as a cookie on THIS response so
+ * /auth/callback can complete exchangeCodeForSession.
  */
 export async function POST(request: NextRequest) {
   let payload: unknown;
@@ -35,12 +49,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Cookie writes are irrelevant here (no session yet); give a no-op adapter.
+  const response = NextResponse.json({ ok: true });
+
   const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
-    cookies: { getAll: () => [], setAll: () => {} },
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: CookieToSet[]) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
+      },
+    },
   });
 
-  const redirectTo = `${env.siteUrl}/auth/callback?stay=${stay ? "1" : "0"}`;
+  const redirectTo = `${resolveOrigin(request)}/auth/callback?stay=${
+    stay ? "1" : "0"
+  }`;
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -57,5 +83,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return response;
 }
