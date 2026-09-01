@@ -11,7 +11,14 @@ import {
   MAX_FILE_BYTES,
   type FileKind,
 } from "@/lib/validation";
+import { compressForUpload } from "@/lib/compress";
 import type { Subject } from "@/lib/types";
+
+function fmtBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 const SANITIZE_OPTS = {
   USE_PROFILES: { html: true },
@@ -42,28 +49,7 @@ async function prerenderHtml(file: File, kind: FileKind): Promise<string | undef
   return undefined;
 }
 
-/**
- * Wrap a scanned image (PNG/JPG) into a single-page PDF so it flows through the
- * same PDF viewer as everything else. The original image bytes are embedded
- * losslessly. Returns null on failure (caller keeps the raw image).
- */
-async function imageToPdf(file: File): Promise<Uint8Array | null> {
-  try {
-    const { PDFDocument } = await import("pdf-lib");
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const pdf = await PDFDocument.create();
-    const isPng =
-      file.type === "image/png" || file.name.toLowerCase().endsWith(".png");
-    const img = isPng ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-    const page = pdf.addPage([img.width, img.height]);
-    page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
-    return await pdf.save();
-  } catch {
-    return null;
-  }
-}
-
-type Status = "pending" | "uploading" | "done" | "error";
+type Status = "pending" | "compressing" | "uploading" | "done" | "error";
 
 interface Item {
   key: string;
@@ -72,6 +58,9 @@ interface Item {
   title: string;
   docDate: string;
   sessionTag: string;
+  compress: boolean;
+  origSize: number;
+  finalSize?: number;
   status: Status;
   message?: string;
 }
@@ -128,6 +117,8 @@ export default function UploadManager({
           title: file.name.replace(/\.[^.]+$/, ""),
           docDate: "",
           sessionTag: "",
+          compress: true,
+          origSize: file.size,
           status: "pending",
         });
       }
@@ -159,25 +150,27 @@ export default function UploadManager({
     pending.every((i) => i.title.trim().length > 0);
 
   async function uploadOne(supabase: ReturnType<typeof createSupabaseBrowserClient>, it: Item) {
-    patch(it.key, { status: "uploading", message: undefined });
-
-    // Images become a single-page PDF so every note opens in the PDF viewer.
     let kind: FileKind = it.kind;
     let ext = extOf(it.file.name);
     let body: Blob | Uint8Array = it.file;
     let contentType = it.file.type || CONTENT_TYPE[it.kind];
     let size = it.file.size;
 
-    if (it.kind === "image") {
-      const pdfBytes = await imageToPdf(it.file);
-      if (pdfBytes) {
+    // Compress before upload. Images always become a (compressed) PDF; PDFs are
+    // shrunk when it helps. Only the compressed bytes are ever stored.
+    if (it.kind === "image" || it.kind === "pdf") {
+      patch(it.key, { status: "compressing", message: undefined });
+      const c = await compressForUpload(it.file, it.kind, it.compress);
+      if (c && (c.bytes.byteLength < size || it.kind === "image")) {
         kind = "pdf";
-        ext = "pdf";
-        body = pdfBytes;
-        contentType = "application/pdf";
-        size = pdfBytes.byteLength;
+        ext = c.ext;
+        body = c.bytes;
+        contentType = c.contentType;
+        size = c.bytes.byteLength;
       }
     }
+
+    patch(it.key, { status: "uploading", finalSize: size });
 
     const path = `${subjectId}/${crypto.randomUUID()}.${ext}`;
 
@@ -284,8 +277,9 @@ export default function UploadManager({
           PDF / DOCX / MD / PNG / JPG · up to 50 MB each
         </p>
         <p className="mt-1 text-[11px] text-[var(--muted)]">
-          Tip: for the cleanest reading experience, export Word docs to PDF
-          before uploading. Images are converted to PDF automatically.
+          Files are compressed in your browser before upload — only the
+          compressed copy is stored. Images and scanned PDFs shrink the most;
+          for Word docs, upload a PDF export for the cleanest result.
         </p>
       </div>
 
@@ -303,6 +297,39 @@ export default function UploadManager({
                   </span>
                   <span className="truncate text-xs text-[var(--muted)]">
                     {it.file.name}
+                  </span>
+                </div>
+                <div className="mb-2 flex items-center gap-3 text-[11px] text-[var(--muted)]">
+                  {(it.kind === "pdf" || it.kind === "image") && (
+                    <label className="flex cursor-pointer items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        checked={it.compress}
+                        onChange={(e) =>
+                          patch(it.key, { compress: e.target.checked })
+                        }
+                        disabled={it.status === "done" || running}
+                        className="h-3.5 w-3.5 accent-[var(--accent)]"
+                      />
+                      High compression
+                    </label>
+                  )}
+                  <span className="tabular-nums">
+                    {fmtBytes(it.origSize)}
+                    {it.finalSize != null && it.finalSize !== it.origSize && (
+                      <>
+                        {" → "}
+                        <span className="font-medium text-[var(--text)]">
+                          {fmtBytes(it.finalSize)}
+                        </span>{" "}
+                        (−
+                        {Math.max(
+                          0,
+                          Math.round((1 - it.finalSize / it.origSize) * 100),
+                        )}
+                        %)
+                      </>
+                    )}
                   </span>
                 </div>
                 <label className="mb-1 block text-[11px] text-[var(--muted)]">
@@ -392,19 +419,21 @@ export default function UploadManager({
 function StatusPill({ status, message }: { status: Status; message?: string }) {
   const map: Record<Status, string> = {
     pending: "text-[var(--muted)]",
+    compressing: "text-[var(--accent)]",
     uploading: "text-[var(--accent)]",
-    done: "text-green-400",
+    done: "text-green-500",
     error: "text-[var(--danger)]",
+  };
+  const labels: Record<Status, string> = {
+    pending: "Ready",
+    compressing: "Compressing…",
+    uploading: "Uploading…",
+    done: "Done",
+    error: `Error: ${message ?? "failed"}`,
   };
   return (
     <span className={map[status]} title={message}>
-      {status === "pending"
-        ? "Ready"
-        : status === "uploading"
-          ? "Uploading"
-          : status === "done"
-            ? "Done"
-            : `Error: ${message ?? "failed"}`}
+      {labels[status]}
     </span>
   );
 }
