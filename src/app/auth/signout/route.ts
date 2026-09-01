@@ -9,9 +9,14 @@ export const dynamic = "force-dynamic";
 const SUPABASE_COOKIE_RE = /^sb-.*-auth-token/;
 
 async function handle(request: NextRequest) {
-  const { origin } = new URL(request.url);
-  // After sign-out land on the public home page, not the sign-in screen.
-  let response = NextResponse.redirect(`${origin}/`, { status: 303 });
+  const { origin, searchParams } = new URL(request.url);
+  const reason = searchParams.get("reason");
+  // Manual sign-out -> home. Automatic timeout -> sign-in with an explanation.
+  const dest =
+    reason === "idle" || reason === "expired"
+      ? `${origin}/login?reason=${reason}`
+      : `${origin}/`;
+  let response = NextResponse.redirect(dest, { status: 303 });
 
   const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
     cookies: {

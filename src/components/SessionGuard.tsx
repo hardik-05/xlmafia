@@ -36,17 +36,26 @@ export default function SessionGuard({
   const lastActivity = useRef<number>(Date.now());
 
   useEffect(() => {
-    // Restore the idle clock from a previous tab/reload so a fresh page load
-    // does not silently extend the inactivity window.
+    const now = Date.now();
+    // A fresh login (stored value is at/before loginAt) starts the idle clock
+    // now. Only a genuinely mid-session reload keeps the previous clock, so a
+    // stale value from an earlier session can't trigger an instant logout.
+    let last = now;
     try {
       const stored = Number(localStorage.getItem(LS_KEY));
-      if (Number.isFinite(stored) && stored > 0) {
-        lastActivity.current = Math.max(stored, Date.now() - inactivityWindowMs);
-      } else {
-        localStorage.setItem(LS_KEY, String(lastActivity.current));
+      if (Number.isFinite(stored) && stored > loginAt + 5_000) {
+        last = stored;
       }
     } catch {
       /* localStorage unavailable - fall back to in-memory only */
+    }
+    lastActivity.current = last;
+    if (last === now) {
+      try {
+        localStorage.setItem(LS_KEY, String(now));
+      } catch {
+        /* ignore */
+      }
     }
 
     let lastWrite = 0;
