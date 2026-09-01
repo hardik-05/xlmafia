@@ -46,6 +46,20 @@ function clearAuthCookies(request: NextRequest, res: NextResponse) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Supabase uses the Site URL when the exact emailRedirectTo isn't in the
+  // Redirect URLs allow-list, so a magic link can land on "/?code=..." (or
+  // "/?token_hash=..."). Forward those to the real callback so the session
+  // still completes and the user reaches their destination.
+  if (
+    (pathname === "/" || pathname === "") &&
+    (request.nextUrl.searchParams.has("code") ||
+      request.nextUrl.searchParams.has("token_hash"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   // Only protected routes and the login page need a session check. Everything
   // else skips the Supabase round-trip entirely (big latency win).
   if (!isProtected(pathname) && pathname !== "/login") {
